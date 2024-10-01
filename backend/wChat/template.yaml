@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  wChat
+
+  Sample SAM Template for wChat
+
+Parameters:
+  ExampleApiKey:
+    Type: String
+    Description: API Key for the example API
+    Default: '123456789012345678901234567890'
+    MinLength: 20
+    MaxLength: 40
+    AllowedPattern: '[a-zA-Z0-9]+'
+    ConstraintDescription: must be a string of 20 to 40 alphanumeric characters.
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 10
+    Environment:
+      Variables:
+        DB_HOST: wchat.cfm62gkswxq9.us-east-2.rds.amazonaws.com
+        USERS_DB_NAME: users-wchat
+        SMS_DB_NAME: sms-wchat
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+    MemorySize: 128
+
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+Resources:
+
+  # Layers
+  PsycopgLayer:
+      Type: AWS::Serverless::LayerVersion
+      Properties:
+        LayerName: psycopg2-layer
+        Description: Layer for psycopg2
+        ContentUri: psycopg2_layer/
+        CompatibleRuntimes:
+          - python3.12
+        # BuildMethod: python3.12
+
+
+
+  UserFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: user_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/
+      Events:
+        GetUser:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: get
+        CreateUser:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: post
+        UpdateUser:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: put
+        DeleteUser:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: delete
+        OptionsUser:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: options
+        OptionsUserId:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: options
+      Layers:
+        - !Ref PsycopgLayer
+
+  ApplicationResourceGroup:
+    Type: AWS::ResourceGroups::Group
+    Properties:
+      Name:
+        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
+      ResourceQuery:
+        Type: CLOUDFORMATION_STACK_1_0
+  ApplicationInsightsMonitoring:
+    Type: AWS::ApplicationInsights::Application
+    Properties:
+      ResourceGroupName:
+        Ref: ApplicationResourceGroup
+      AutoConfigurationEnabled: 'true'
+Outputs:
+   UserApi:
+    Description: "API Gateway endpoint URL for Prod stage for User functions"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/users/"
