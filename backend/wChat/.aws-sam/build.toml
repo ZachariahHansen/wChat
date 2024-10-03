@@ -5,9 +5,9 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "de5bc7d94c16e5ceaf45f9bed76e35b8965ae992df07dfdebde537b1de13cf48"
+source_hash = "bb794f3238ec2af754ef3968c42cccba64bc60a7a5ce52c59031289aab1d057f"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["UserFunctions"]
+functions = ["UserFunctions", "LoginFunctions"]
 
 [layer_build_definitions]

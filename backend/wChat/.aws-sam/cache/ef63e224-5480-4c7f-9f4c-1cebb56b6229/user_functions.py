@@ -57,13 +57,11 @@ def lambda_handler(event, context):
 def get_user(event, cur):
     user_id = event['pathParameters']['id']
     cur.execute("""
-        SELECT u.id, u.name, u.email, u.phone_number, u.role, d.name as department, s.schedule, array_agg(sh.shift_time) as shifts
+        SELECT u.id, u.name, u.email, u.phone_number, u.role, d.name as department
         FROM users u
         LEFT JOIN departments d ON u.department_id = d.id
-        LEFT JOIN schedules s ON u.id = s.user_id
-        LEFT JOIN shifts sh ON u.id = sh.user_id
-        WHERE u.id = %s
-        GROUP BY u.id, d.name, s.schedule
+        WHERE u.id = 8
+        GROUP BY u.id, d.name
     """, (user_id,))
     user = cur.fetchone()
     
@@ -74,16 +72,16 @@ def get_user(event, cur):
 
 def create_user(event, cur):
     user_data = json.loads(event['body'])
-    required_fields = ['name', 'email', 'phone_number', 'role', 'department_id']
+    required_fields = ['name', 'password', 'email', 'phone_number', 'role', 'department_id']
     
     if not all(field in user_data for field in required_fields):
         return response(400, {'error': 'Missing required fields'})
     
     cur.execute("""
-        INSERT INTO users (name, email, phone_number, role, department_id)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO users (name, password, email, phone_number, role, department_id)
+        VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id
-    """, (user_data['name'], user_data['email'], user_data['phone_number'], user_data['role'], user_data['department_id']))
+    """, (user_data['name'], user_data['password'], user_data['email'], user_data['phone_number'], user_data['role'], user_data['department_id']))
     
     new_user_id = cur.fetchone()['id']
     cur.connection.commit()

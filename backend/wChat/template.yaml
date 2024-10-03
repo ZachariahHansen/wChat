@@ -26,6 +26,7 @@ Globals:
         SMS_DB_NAME: sms-wchat
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
+        JWT_SECRET: ILoveMyself
     MemorySize: 128
 
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
@@ -34,16 +35,17 @@ Globals:
 Resources:
 
   # Layers
-  PsycopgLayer:
-      Type: AWS::Serverless::LayerVersion
-      Properties:
-        LayerName: psycopg2-layer
-        Description: Layer for psycopg2
-        ContentUri: psycopg2_layer/
-        CompatibleRuntimes:
-          - python3.12
-        # BuildMethod: python3.12
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: dependencies-layer
+      Description: Layer for psycopg2, PyJWT, and bcrypt
+      ContentUri: dependencies_layer/
+      CompatibleRuntimes:
+        - python3.12
 
+
+# FUNCTIONS
 
 
   UserFunctions:
@@ -61,7 +63,7 @@ Resources:
         CreateUser:
           Type: Api
           Properties:
-            Path: /users
+            Path: /users/register
             Method: post
         UpdateUser:
           Type: Api
@@ -73,10 +75,10 @@ Resources:
           Properties:
             Path: /users/{id}
             Method: delete
-        OptionsUser:
+        OptionsRegister:
           Type: Api
           Properties:
-            Path: /users
+            Path: /users/register
             Method: options
         OptionsUserId:
           Type: Api
@@ -84,7 +86,27 @@ Resources:
             Path: /users/{id}
             Method: options
       Layers:
-        - !Ref PsycopgLayer
+        - !Ref DependenciesLayer
+
+  LoginFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: login.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/
+      Events:
+        Login:
+          Type: Api
+          Properties:
+            Path: /users/login
+            Method: post
+        OptionsLogin:
+          Type: Api
+          Properties:
+            Path: /users/login
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
