@@ -4,6 +4,7 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import bcrypt
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -61,7 +62,7 @@ def get_user(event, cur):
         FROM users u
         LEFT JOIN departments d ON u.department_id = d.id
         WHERE u.id = 8
-        GROUP BY u.id, d.name
+        GROUP BY u.id, d.name jum
     """, (user_id,))
     user = cur.fetchone()
     
@@ -77,11 +78,14 @@ def create_user(event, cur):
     if not all(field in user_data for field in required_fields):
         return response(400, {'error': 'Missing required fields'})
     
+    # Hash the password before storing it
+    password_crypt = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
     cur.execute("""
         INSERT INTO users (name, password, email, phone_number, role, department_id)
         VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id
-    """, (user_data['name'], user_data['password'], user_data['email'], user_data['phone_number'], user_data['role'], user_data['department_id']))
+    """, (user_data['name'], password_crypt, user_data['email'], user_data['phone_number'], user_data['role'], user_data['department_id']))
     
     new_user_id = cur.fetchone()['id']
     cur.connection.commit()

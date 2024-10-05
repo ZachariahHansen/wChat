@@ -145,36 +145,6 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
 
-  ShiftsUserFunctions:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: user_shifts.lambda_handler
-      Runtime: python3.12
-      CodeUri: functions/shift/
-      Events:
-        GetShiftsUser:
-          Type: Api
-          Properties:
-            Path: /shifts/user/{id}
-            Method: get
-      Layers:
-        - !Ref DependenciesLayer
-
-  ShiftsDepartmentFunctions:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: department_available_shifts.lambda_handler
-      Runtime: python3.12
-      CodeUri: functions/shift/
-      Events:
-        GetShiftsDepartment:
-          Type: Api
-          Properties:
-            Path: /shifts/department/{id}
-            Method: get
-      Layers:
-        - !Ref DependenciesLayer
-
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:
