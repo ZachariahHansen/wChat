@@ -8,7 +8,6 @@ import bcrypt
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
-# DB_NAME = os.environ['DB_NAME']
 DB_USER = os.environ['POSTGRES_USER']
 DB_PASSWORD = os.environ['POSTGRES_PASSWORD']
 
@@ -20,7 +19,6 @@ JWT_EXPIRATION_HOURS = 24
 def get_db_connection():
     return psycopg2.connect(
         host=DB_HOST,
-        # database=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD
     )
@@ -42,20 +40,29 @@ def lambda_handler(event, context):
     conn = get_db_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT id, password FROM users WHERE email = %s", (email,))
+            cur.execute("""
+                SELECT u.id, u.password, u.first_name, u.last_name, u.email, r.name as role
+                FROM "user" u
+                JOIN role r ON u.role_id = r.id
+                WHERE u.email = %s
+            """, (email,))
             user = cur.fetchone()
 
             if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-                token = generate_jwt_token(user['id'])
+                token = generate_jwt_token(user)
                 return response(200, {'token': token})
             else:
                 return response(401, {'error': 'Invalid credentials'})
     finally:
         conn.close()
 
-def generate_jwt_token(user_id):
+def generate_jwt_token(user):
     payload = {
-        'user_id': user_id,
+        'user_id': user['id'],
+        'email': user['email'],
+        'first_name': user['first_name'],
+        'last_name': user['last_name'],
+        'role': user['role'],
         'exp': datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)

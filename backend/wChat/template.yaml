@@ -49,6 +49,33 @@ Resources:
 
 # FUNCTIONS
 
+  RoleFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: role_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/role/
+      Events:
+        GetRole:
+          Type: Api
+          Properties:
+            Path: /roles/{id}
+            Method: get
+        CreateRole:
+          Type: Api
+          Properties:
+            Path: /roles
+            Method: post
+        UpdateRole:
+          Type: Api
+          Properties:
+            Path: /roles/{id}
+            Method: put
+        DeleteRole:
+          Type: Api
+          Properties:
+            Path: /roles/{id}
+            Method: delete
 
   UserFunctions:
     Type: AWS::Serverless::Function

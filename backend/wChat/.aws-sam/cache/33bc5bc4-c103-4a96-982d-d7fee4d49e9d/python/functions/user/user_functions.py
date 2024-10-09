@@ -1,5 +1,3 @@
-# lambda_function.py
-
 import json
 import os
 import psycopg2
@@ -8,7 +6,7 @@ import bcrypt
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
-# DB_NAME = ''
+# DB_NAME = os.environ['DB_NAME']
 DB_USER = os.environ['POSTGRES_USER']
 DB_PASSWORD = os.environ['POSTGRES_PASSWORD']
 
@@ -20,22 +18,9 @@ def get_db_connection():
         password=DB_PASSWORD
     )
 
-def test_db_connection(event, context):
-    try:
-        conn = get_db_connection()
-        with conn.cursor() as cur:
-            cur.execute("SELECT 1")
-        return response(200, {'message': 'Database connection successful'})
-    except Exception as e:
-        return response(500, {'error': f'Database connection failed: {str(e)}'})
-    finally:
-        if conn:
-            conn.close()
-
 def lambda_handler(event, context):
-    # Handle preflight OPTIONS request
     if event['httpMethod'] == 'OPTIONS':
-        return response(200, DB_HOST)
+        return response(200, 'OK')
     
     conn = get_db_connection()
     try:
@@ -58,11 +43,13 @@ def lambda_handler(event, context):
 def get_user(event, cur):
     user_id = event['pathParameters']['id']
     cur.execute("""
-        SELECT u.id, u.name, u.email, u.phone_number, u.role, d.name as department
-        FROM users u
-        LEFT JOIN departments d ON u.department_id = d.id
-        WHERE u.id = 8
-        GROUP BY u.id, d.name jum
+        SELECT u.id, u.first_name, u.last_name, u.email, u.phone_number, u.hourly_rate, 
+               r.name as role, d.name as department
+        FROM "user" u
+        LEFT JOIN role r ON u.role_id = r.id
+        LEFT JOIN department_group dg ON u.id = dg.user_id
+        LEFT JOIN department d ON dg.department_id = d.id
+        WHERE u.id = %s
     """, (user_id,))
     user = cur.fetchone()
     
@@ -73,19 +60,19 @@ def get_user(event, cur):
 
 def create_user(event, cur):
     user_data = json.loads(event['body'])
-    required_fields = ['name', 'password', 'email', 'phone_number', 'role', 'department_id']
+    required_fields = ['first_name', 'last_name', 'email', 'phone_number', 'hourly_rate', 'role_id', 'password']
     
     if not all(field in user_data for field in required_fields):
         return response(400, {'error': 'Missing required fields'})
     
-    # Hash the password before storing it
-    password_crypt = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    password_hash = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     cur.execute("""
-        INSERT INTO users (name, password, email, phone_number, role, department_id)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO "user" (first_name, last_name, email, phone_number, hourly_rate, role_id, password)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         RETURNING id
-    """, (user_data['name'], password_crypt, user_data['email'], user_data['phone_number'], user_data['role'], user_data['department_id']))
+    """, (user_data['first_name'], user_data['last_name'], user_data['email'], user_data['phone_number'], 
+          user_data['hourly_rate'], user_data['role_id'], password_hash))
     
     new_user_id = cur.fetchone()['id']
     cur.connection.commit()
@@ -99,7 +86,7 @@ def update_user(event, cur):
     update_fields = []
     update_values = []
     
-    for field in ['name', 'email', 'phone_number', 'role', 'department_id']:
+    for field in ['first_name', 'last_name', 'email', 'phone_number', 'hourly_rate', 'role_id']:
         if field in user_data:
             update_fields.append(f"{field} = %s")
             update_values.append(user_data[field])
@@ -107,10 +94,11 @@ def update_user(event, cur):
     if not update_fields:
         return response(400, {'error': 'No fields to update'})
     
+    update_fields.append("updated_at = CURRENT_TIMESTAMP")
     update_values.append(user_id)
     
     cur.execute(f"""
-        UPDATE users
+        UPDATE "user"
         SET {', '.join(update_fields)}
         WHERE id = %s
         RETURNING id
@@ -127,7 +115,7 @@ def update_user(event, cur):
 def delete_user(event, cur):
     user_id = event['pathParameters']['id']
     
-    cur.execute("DELETE FROM users WHERE id = %s RETURNING id", (user_id,))
+    cur.execute('DELETE FROM "user" WHERE id = %s RETURNING id', (user_id,))
     deleted_user = cur.fetchone()
     cur.connection.commit()
     
