@@ -46,9 +46,50 @@ Resources:
     Metadata:
       BuildMethod: python3.12
 
+  AuthLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: auth-layer
+      Description: Layer for the Authentication
+      ContentUri: functions/auth_layer/
+      CompatibleRuntimes:
+        - python3.12
+    Metadata:
+      BuildMethod: python3.12
+
 
 # FUNCTIONS
 
+  RoleFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: role_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/role/
+      Events:
+        GetRole:
+          Type: Api
+          Properties:
+            Path: /roles/{id}
+            Method: get
+        CreateRole:
+          Type: Api
+          Properties:
+            Path: /roles
+            Method: post
+        UpdateRole:
+          Type: Api
+          Properties:
+            Path: /roles/{id}
+            Method: put
+        DeleteRole:
+          Type: Api
+          Properties:
+            Path: /roles/{id}
+            Method: delete
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   UserFunctions:
     Type: AWS::Serverless::Function
@@ -89,6 +130,7 @@ Resources:
             Method: options
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   LoginFunctions:
     Type: AWS::Serverless::Function
@@ -109,6 +151,7 @@ Resources:
             Method: options
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ShiftFunctions:
     Type: AWS::Serverless::Function
@@ -144,6 +187,7 @@ Resources:
             Method: options
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ShiftsUserFunctions:
     Type: AWS::Serverless::Function
@@ -159,6 +203,7 @@ Resources:
             Method: get
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ShiftsDepartmentFunctions:
     Type: AWS::Serverless::Function
@@ -174,6 +219,7 @@ Resources:
             Method: get
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

@@ -6,7 +6,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "4061a5a8bbafb53a53e276ebadf3f3ef7ebfa56838c37360b510bf4a66067fc0"
+source_hash = "3f62523d3907e9bef9b53048eb75991d10217cac2dae96c6afc0aafcb68887b9"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["UserFunctions", "LoginFunctions"]
@@ -16,17 +16,38 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "204015e62e74586736c91e14408ab61953888342200c86eab324b025b085fba0"
+source_hash = "716d5d4cd8266b507a323e3d015e7326756f2d8052816d02d71358b850f01c58"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions"]
 
+[function_build_definitions.5e949d34-c7d4-4f38-adc4-905f406d11d9]
+codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\role"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "role_functions.lambda_handler"
+source_hash = "745abac6492de2246cd4d40cb0d14dbb825851073f03f073480e9b4eb696169f"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["RoleFunctions"]
+
+[layer_build_definitions]
 [layer_build_definitions.33bc5bc4-c103-4a96-982d-d7fee4d49e9d]
 layer_name = "DependenciesLayer"
 codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat"
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "81667168060d420fd8d207479b3bd38b56987cf6ae2f200498b1e7e1826a58c9"
+source_hash = "39124adb01fa78ffdd961b81f61b027ab56d420386cbfbe5374d95528325897a"
 manifest_hash = ""
 layer = "DependenciesLayer"
+
+[layer_build_definitions.37e37d3c-269a-4575-abce-f4a6091dacfe]
+layer_name = "AuthLayer"
+codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\auth_layer"
+build_method = "python3.12"
+compatible_runtimes = ["python3.12"]
+architecture = "x86_64"
+source_hash = "bb6dd1f918e53d257496bbb32bcb0ce2f7503b79755f2b0dae146c6df2323d3f"
+manifest_hash = ""
+layer = "AuthLayer"

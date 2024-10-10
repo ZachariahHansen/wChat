@@ -46,6 +46,17 @@ Resources:
     Metadata:
       BuildMethod: python3.12
 
+  AuthLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: auth-layer
+      Description: Layer for the Authentication
+      ContentUri: functions/auth_layer/
+      CompatibleRuntimes:
+        - python3.12
+    Metadata:
+      BuildMethod: python3.12
+
 
 # FUNCTIONS
 
@@ -76,6 +87,9 @@ Resources:
           Properties:
             Path: /roles/{id}
             Method: delete
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   UserFunctions:
     Type: AWS::Serverless::Function
@@ -116,6 +130,7 @@ Resources:
             Method: options
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   LoginFunctions:
     Type: AWS::Serverless::Function
@@ -136,6 +151,7 @@ Resources:
             Method: options
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ShiftFunctions:
     Type: AWS::Serverless::Function
@@ -171,6 +187,7 @@ Resources:
             Method: options
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ShiftsUserFunctions:
     Type: AWS::Serverless::Function
@@ -186,6 +203,7 @@ Resources:
             Method: get
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ShiftsDepartmentFunctions:
     Type: AWS::Serverless::Function
@@ -201,6 +219,7 @@ Resources:
             Method: get
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

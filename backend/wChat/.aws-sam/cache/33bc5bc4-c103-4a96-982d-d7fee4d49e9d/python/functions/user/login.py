@@ -5,6 +5,7 @@ from psycopg2.extras import RealDictCursor
 import jwt
 from datetime import datetime, timedelta
 import bcrypt
+from functions.auth_layer.auth import authenticate
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']

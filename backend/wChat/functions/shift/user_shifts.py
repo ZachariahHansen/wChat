@@ -32,12 +32,13 @@ def lambda_handler(event, context):
     finally:
         conn.close()
 
+@authenticate
 def get_user_shifts(event, cur):
     user_id = event['pathParameters']['id']
     cur.execute("""
-        SELECT s.id, s.start_time, s.end_time, s.status, d.name as department
+        SELECT s.id, s.start_time, s.end_time, s.status, u.name as "user"
         FROM shift s
-        LEFT JOIN departments d ON s.department_id = d.id
+        LEFT JOIN  u ON s.department_id = d.id
         WHERE s.scheduled_by = %s
     """, (user_id,))
     shifts = cur.fetchall()

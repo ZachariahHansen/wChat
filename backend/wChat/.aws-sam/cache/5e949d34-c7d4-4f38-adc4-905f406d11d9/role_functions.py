@@ -2,7 +2,7 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from functions.auth_layer.auth import authenticate
+
 
 DB_HOST = os.environ['DB_HOST']
 # DB_NAME = 'users' 
@@ -17,7 +17,6 @@ def get_db_connection():
         password=DB_PASSWORD
     )
 
-@authenticate
 def lambda_handler(event, context):
     
     if event['httpMethod'] == 'OPTIONS':

@@ -2,10 +2,10 @@ import json
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from functions.auth_layer.auth import authenticate
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
-
 DB_USER = os.environ['POSTGRES_USER']
 DB_PASSWORD = os.environ['POSTGRES_PASSWORD']
 
@@ -17,6 +17,7 @@ def get_db_connection():
         password=DB_PASSWORD
     )
 
+@authenticate
 def lambda_handler(event, context):
     # Handle preflight OPTIONS request
     if event['httpMethod'] == 'OPTIONS':
