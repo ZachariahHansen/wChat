@@ -21,12 +21,10 @@ class LoginApi {
 
 
   Future<int> login_service(String email, String password) async {
-    print("inside login_service");
+
     if (baseUrl == null) {
       await _loadUrl();
     }
-
-    print(baseUrl);
 
     final response = await http.post(
       Uri.parse('$baseUrl/users/login'),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wchat/ui/Login/login_screen.dart';
+import 'package:wchat/ui/Home/home_screen.dart';
+import 'package:wchat/ui/Schedule/schedule_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,7 +10,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -18,6 +19,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: LoginScreen(),
+      routes: {
+        '/': (context) => HomeScreen(),
+        '/schedule': (context) => ScheduleScreen(),
+      },
     );
   }
 }

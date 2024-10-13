@@ -32,6 +32,7 @@ def lambda_handler(event, context):
     finally:
         conn.close()
 
+@authenticate
 def get_user_shifts(event, cur):
     user_id = event['pathParameters']['id']
     cur.execute("""

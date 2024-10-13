@@ -16,20 +16,30 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "716d5d4cd8266b507a323e3d015e7326756f2d8052816d02d71358b850f01c58"
+source_hash = "36da5adff18cf0e61a1e1e44b170f92da2f09e24476acd1470ee93c710205648"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions"]
+functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "AssignShiftFunction"]
 
 [function_build_definitions.5e949d34-c7d4-4f38-adc4-905f406d11d9]
 codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\role"
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "role_functions.lambda_handler"
-source_hash = "745abac6492de2246cd4d40cb0d14dbb825851073f03f073480e9b4eb696169f"
+source_hash = "524a0dfc4c0703ec354a96bb386058160a58a6a0716b3517482737ad5d50f216"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["RoleFunctions"]
+
+[function_build_definitions.b26dcef5-7aeb-4124-9c78-4e51130d06f7]
+codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\department"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "department_functions.lambda_handler"
+source_hash = "2b1eb98a55cce31f770027806ee130e86ed72cede28a00b90a2c1bd9a6979f31"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["DepartmentFunctions"]
 
 [layer_build_definitions]
 [layer_build_definitions.33bc5bc4-c103-4a96-982d-d7fee4d49e9d]
@@ -38,7 +48,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "39124adb01fa78ffdd961b81f61b027ab56d420386cbfbe5374d95528325897a"
+source_hash = "44269475b6394ce8a5952204c799cfef24bcc6c9458f212a23642ae03344f0f2"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

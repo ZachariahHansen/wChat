@@ -5,15 +5,15 @@ Description: >
 
   Sample SAM Template for wChat
 
-Parameters:
-  ExampleApiKey:
-    Type: String
-    Description: API Key for the example API
-    Default: '123456789012345678901234567890'
-    MinLength: 20
-    MaxLength: 40
-    AllowedPattern: '[a-zA-Z0-9]+'
-    ConstraintDescription: must be a string of 20 to 40 alphanumeric characters.
+# Parameters:
+  # ExampleApiKey:
+  #   Type: String
+  #   Description: API Key for the example API
+  #   Default: '123456789012345678901234567890'
+  #   MinLength: 20
+  #   MaxLength: 40
+  #   AllowedPattern: '[a-zA-Z0-9]+'
+  #   ConstraintDescription: must be a string of 20 to 40 alphanumeric characters.
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -59,6 +59,37 @@ Resources:
 
 
 # FUNCTIONS
+
+  DepartmentFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: department_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/department/
+      Events:
+        GetDepartment:
+          Type: Api
+          Properties:
+            Path: /departments/{id}
+            Method: get
+        CreateDepartment:
+          Type: Api
+          Properties:
+            Path: /departments
+            Method: post
+        UpdateDepartment:
+          Type: Api
+          Properties:
+            Path: /departments/{id}
+            Method: put
+        DeleteDepartment:
+          Type: Api
+          Properties:
+            Path: /departments/{id}
+            Method: delete
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   RoleFunctions:
     Type: AWS::Serverless::Function
@@ -220,6 +251,38 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+
+  NextShiftFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: next_shift.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/shift/
+      Events:
+        GetNextShift:
+          Type: Api
+          Properties:
+            Path: /shifts/next/{id}
+            Method: get
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  AssignShiftFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: assign_shift.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/shift/
+      Events:
+        AssignShift:
+          Type: Api
+          Properties:
+            Path: /shifts/assign
+            Method: put
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer  
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

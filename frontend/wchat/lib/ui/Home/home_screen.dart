@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
+import 'package:wchat/data/models/shift.dart';
+import 'package:wchat/services/api/shift_api.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -9,9 +12,35 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Shift? _nextShift;
+  bool _isLoading = true;
+
+  final ShiftApi _shiftApi = ShiftApi();
+  
+  @override
+  void initState() {
+    super.initState();
+    _fetchNextShift();
+  }
+
+  Future<void> _fetchNextShift() async {
+    try {
+      print('fetching next shift');
+      final nextShift = await _shiftApi.getNextShift();
+      setState(() {
+        _nextShift = nextShift;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching next shift: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: Implement build method
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -21,18 +50,38 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            NextShiftWidget(nextShift: Shift(date: DateTime.now(), startTime: TimeOfDay(hour: 9, minute: 0), endTime: TimeOfDay(hour: 17, minute: 0))),
+            const CurrentTimeWidget(),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : NextShiftWidget(nextShift: _nextShift),
           ],
         ),
       ),
     );
   }
-
 }
 
+class CurrentTimeWidget extends StatelessWidget {
+  const CurrentTimeWidget({Key? key}) : super(key: key);
 
-
-
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Current Time'),
+            const SizedBox(height: 8),
+            Text(DateTime.now().toString()),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class NextShiftWidget extends StatelessWidget {
   final Shift? nextShift;
@@ -48,16 +97,12 @@ class NextShiftWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Next Shift'
-            ),
+            const Text('Next Shift'),
             const SizedBox(height: 8),
             if (nextShift != null)
               _buildShiftInfo(context)
             else
-              const Text(
-                'No upcoming shifts',
-              ),
+              const Text('No upcoming shifts'),
           ],
         ),
       ),
@@ -65,26 +110,21 @@ class NextShiftWidget extends StatelessWidget {
   }
 
   Widget _buildShiftInfo(BuildContext context) {
+    final DateFormat dateFormatter = DateFormat('yyyy-MM-dd');
+    final DateFormat timeFormatter = DateFormat('HH:mm');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${nextShift!.startTime.format(context)} - ${nextShift!.endTime.format(context)}'
+          '${timeFormatter.format(nextShift!.startTime)} - ${timeFormatter.format(nextShift!.endTime)}',
         ),
         const SizedBox(height: 4),
-        Text(
-          nextShift!.date.toString()
-        ),
+        Text(dateFormatter.format(nextShift!.date)),
+        const SizedBox(height: 4),
+        Text('Status: ${nextShift!.status}'),
+        Text('Department: ${nextShift!.departmentName}'),
       ],
     );
   }
-}
-
-// I will add this to a separate file later
-class Shift {
-  final DateTime date;
-  final TimeOfDay startTime;
-  final TimeOfDay endTime;
-
-  Shift({required this.date, required this.startTime, required this.endTime});
 }
