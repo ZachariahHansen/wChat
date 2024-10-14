@@ -163,6 +163,22 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
+  GetAllUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get_all_users.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Events:
+        GetAllUsers:
+          Type: Api
+          Properties:
+            Path: /users/all
+            Method: get
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
   LoginFunctions:
     Type: AWS::Serverless::Function
     Properties:

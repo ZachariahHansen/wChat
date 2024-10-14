@@ -44,6 +44,13 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.book),
+            title: const Text('Directory'),
+            onTap: () {
+              Navigator.pushReplacementNamed(context, '/directory');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('Settings'),
             onTap: () {

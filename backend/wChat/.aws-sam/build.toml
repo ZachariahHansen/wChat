@@ -6,10 +6,10 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "3f62523d3907e9bef9b53048eb75991d10217cac2dae96c6afc0aafcb68887b9"
+source_hash = "be04536861185cd887e009d1cda5701f9cd4613814ec453cecfac29d56883a10"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["UserFunctions", "LoginFunctions"]
+functions = ["UserFunctions", "GetAllUsersFunction", "LoginFunctions"]
 
 [function_build_definitions.fb7aeffa-20a2-491f-8e65-7ac1dceb4539]
 codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\shift"
@@ -48,7 +48,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "a9dd4158ed98c12057030630e6d4737d9fca8200df61280b555c7eb758e97ead"
+source_hash = "e37781c6515507613ed2e50f0e807865679b758e031f8b60bb9992e7a86b4f86"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

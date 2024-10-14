@@ -64,7 +64,8 @@ class ShiftApi {
     }
   }
 
-  Future<Map<String, dynamic>> createShift(Map<String, dynamic> shiftData) async {
+  Future<Map<String, dynamic>> createShift(
+      Map<String, dynamic> shiftData) async {
     if (baseUrl == null) await _loadUrl();
     final headers = await _getHeaders();
 
@@ -81,7 +82,8 @@ class ShiftApi {
     }
   }
 
-  Future<Map<String, dynamic>> updateShift(int shiftId, Map<String, dynamic> shiftData) async {
+  Future<Map<String, dynamic>> updateShift(
+      int shiftId, Map<String, dynamic> shiftData) async {
     if (baseUrl == null) await _loadUrl();
     final headers = await _getHeaders();
 
@@ -140,5 +142,31 @@ class ShiftApi {
     }
   }
 
-  
+  Future<List<Shift>> getUserAvailableShifts() async {
+    if (baseUrl == null) await _loadUrl();
+    final headers = await _getHeaders();
+
+    try {
+      final tokenData = await JwtDecoder.decode();
+      final userId = tokenData['user_id'];
+
+      if (userId == null) {
+        throw Exception('User ID not found in JWT token');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/shifts/user/$userId'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> shiftsJson = json.decode(response.body);
+        return shiftsJson.map((json) => Shift.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load user available shifts');
+      }
+    } catch (e) {
+      throw Exception('Error getting user available shifts: $e');
+    }
+  }
 }
