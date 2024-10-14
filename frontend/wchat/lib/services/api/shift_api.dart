@@ -139,4 +139,6 @@ class ShiftApi {
       throw Exception('Error getting next shift: $e');
     }
   }
+
+  
 }

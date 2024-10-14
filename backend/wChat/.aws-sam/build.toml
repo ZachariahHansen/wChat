@@ -16,7 +16,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "36da5adff18cf0e61a1e1e44b170f92da2f09e24476acd1470ee93c710205648"
+source_hash = "5b577b53f6ff0285f65832e65424c9aa93d6a7e6fe40bc9c8211e7c940e207a2"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "AssignShiftFunction"]
@@ -48,7 +48,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "44269475b6394ce8a5952204c799cfef24bcc6c9458f212a23642ae03344f0f2"
+source_hash = "a9dd4158ed98c12057030630e6d4737d9fca8200df61280b555c7eb758e97ead"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

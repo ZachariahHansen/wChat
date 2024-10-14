@@ -70,7 +70,7 @@ def get_shift(event, cur):
 @authenticate
 def create_shift(event, cur):
     shift_data = json.loads(event['body'])
-    required_fields = ['start_time', 'end_time', 'scheduled_by_id', 'department_id']
+    required_fields = ['start_time', 'end_time', 'scheduled_by_id', 'department_id', 'user_id']
     
     if not all(field in shift_data for field in required_fields):
         return response(400, {'error': 'Missing required fields'})
@@ -80,8 +80,8 @@ def create_shift(event, cur):
     end_time = datetime.fromisoformat(shift_data['end_time'])
     
     cur.execute("""
-        INSERT INTO shift (start_time, end_time, scheduled_by_id, department_id, status)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO shift (start_time, end_time, scheduled_by_id, department_id, user_id, status)
+        VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id
     """, (start_time, end_time, shift_data['scheduled_by_id'], 
           shift_data['department_id'], 'scheduled'))
