@@ -23,12 +23,12 @@ def lambda_handler(event, context):
     conn = get_db_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            return get_all_users(cur)
+            return get_all_users(event, cur)
     finally:
         conn.close()
 
 @authenticate
-def get_all_users(cur):
+def get_all_users(event, cur):
     cur.execute("""
         SELECT id as user_id, first_name, last_name
         FROM "user"

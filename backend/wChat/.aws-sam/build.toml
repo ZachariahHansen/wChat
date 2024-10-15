@@ -6,7 +6,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "be04536861185cd887e009d1cda5701f9cd4613814ec453cecfac29d56883a10"
+source_hash = "df93f156a45d71496499f4a70a433ce52b8eaa1483db6668bbc95e558921d08e"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["UserFunctions", "GetAllUsersFunction", "LoginFunctions"]
@@ -48,7 +48,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "e37781c6515507613ed2e50f0e807865679b758e031f8b60bb9992e7a86b4f86"
+source_hash = "a6cab7ac604fe7b896cc48306a8c858436cc1976c9ff87d10a5894bd6f3dbf53"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

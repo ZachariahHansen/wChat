@@ -166,7 +166,7 @@ Resources:
   GetAllUsersFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: get_all_users.lambda_handler
+      Handler: all_users.lambda_handler
       Runtime: python3.12
       CodeUri: functions/user/
       Events:
