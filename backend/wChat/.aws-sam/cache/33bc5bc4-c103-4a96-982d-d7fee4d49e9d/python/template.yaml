@@ -21,7 +21,7 @@ Globals:
     Timeout: 10
     Environment:
       Variables:
-        DB_HOST: wchat.cfm62gkswxq9.us-east-2.rds.amazonaws.com
+        DB_HOST: 34.31.238.119
         USERS_DB_NAME: users-wchat
         SMS_DB_NAME: sms-wchat
         POSTGRES_USER: postgres
@@ -299,6 +299,53 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer  
+
+  MessageFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: message_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/message/
+      Events:
+        GetMessage:
+          Type: Api
+          Properties:
+            Path: /messages/{id}
+            Method: get
+        CreateMessage:
+          Type: Api
+          Properties:
+            Path: /messages
+            Method: post
+        UpdateMessage:
+          Type: Api
+          Properties:
+            Path: /messages/{id}
+            Method: put
+        DeleteMessage:
+          Type: Api
+          Properties:
+            Path: /messages/{id}
+            Method: delete
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+      
+  ConversationListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: conversation_list.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/message/
+      Events:
+        GetConversations:
+          Type: Api
+          Properties:
+            Path: /messages/conversations
+            Method: get
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group

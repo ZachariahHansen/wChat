@@ -68,9 +68,10 @@ def get_shift(event, cur):
         return response(404, {'error': 'Shift not found'})
 
 @authenticate
+@authenticate
 def create_shift(event, cur):
     shift_data = json.loads(event['body'])
-    required_fields = ['start_time', 'end_time', 'scheduled_by_id', 'department_id', 'user_id']
+    required_fields = ['start_time', 'end_time', 'scheduled_by_id', 'department_id']
     
     if not all(field in shift_data for field in required_fields):
         return response(400, {'error': 'Missing required fields'})
@@ -84,7 +85,7 @@ def create_shift(event, cur):
         VALUES (%s, %s, %s, %s, %s, %s)
         RETURNING id
     """, (start_time, end_time, shift_data['scheduled_by_id'], 
-          shift_data['department_id'], 'scheduled'))
+          shift_data['department_id'], shift_data.get('user_id'), shift_data.get('status', 'scheduled')))
     
     new_shift_id = cur.fetchone()['id']
     cur.connection.commit()

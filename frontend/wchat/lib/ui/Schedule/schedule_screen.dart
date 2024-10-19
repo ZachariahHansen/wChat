@@ -3,6 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
 import 'package:wchat/services/api/shift_api.dart';
 import 'package:wchat/data/models/shift.dart';
+import 'package:intl/intl.dart';
 
 class ScheduleScreen extends StatefulWidget {
   @override
@@ -20,6 +21,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   void initState() {
     super.initState();
     _shiftApi = ShiftApi();
+    _selectedDay = _focusedDay;
     _fetchShifts();
   }
 
@@ -48,7 +50,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   List<Shift> _getEventsForDay(DateTime day) {
-    return _events[day] ?? [];
+    return _events[DateTime(day.year, day.month, day.day)] ?? [];
   }
 
   @override
@@ -85,19 +87,57 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               _focusedDay = focusedDay;
             },
             eventLoader: _getEventsForDay,
+            calendarStyle: CalendarStyle(
+              markerDecoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
+          const SizedBox(height: 8),
           Expanded(
             child: ListView(
               children: _getEventsForDay(_selectedDay ?? _focusedDay)
-                  .map((shift) => ListTile(
-                        title: Text('${shift.departmentName} Shift'),
-                        subtitle: Text('${shift.startTime.toLocal()} - ${shift.endTime.toLocal()}'),
-                      ))
+                  .map((shift) => _buildShiftTile(shift))
                   .toList(),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildShiftTile(Shift shift) {
+    final timeFormatter = DateFormat('HH:mm');
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: ListTile(
+        leading: Icon(Icons.work, color: Theme.of(context).primaryColor),
+        title: Text('${shift.departmentName} Shift'),
+        subtitle: Text(
+          '${timeFormatter.format(shift.startTime)} - ${timeFormatter.format(shift.endTime)}',
+        ),
+        trailing: Text(
+          shift.status,
+          style: TextStyle(
+            color: _getStatusColor(shift.status),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
   }
 }

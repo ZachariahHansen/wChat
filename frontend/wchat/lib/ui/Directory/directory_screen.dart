@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wchat/services/api/user_api.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
+import 'package:wchat/ui/Profile/profile_screen.dart';
 
 class User {
   final int userId;
@@ -60,10 +61,11 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
     }
   }
 
-  void _navigateToMessageScreen(User user) {
-    // TODO: Implement navigation to message screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navigate to message screen for ${user.fullName}')),
+  void _navigateToProfileScreen(User user) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => UserProfileScreen(userId: user.userId),
+      ),
     );
   }
 
@@ -84,7 +86,7 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
                   final user = _users[index];
                   return ListTile(
                     title: Text(user.fullName),
-                    onTap: () => _navigateToMessageScreen(user),
+                    onTap: () => _navigateToProfileScreen(user),
                   );
                 },
               ),

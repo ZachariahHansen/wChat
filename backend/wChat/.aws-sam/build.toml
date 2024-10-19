@@ -16,7 +16,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "5b577b53f6ff0285f65832e65424c9aa93d6a7e6fe40bc9c8211e7c940e207a2"
+source_hash = "99a15089de1feee9b13313fac64a5beb849b7d0c81cd1c7a74021fa8bda6e28e"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "AssignShiftFunction"]
@@ -41,6 +41,16 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["DepartmentFunctions"]
 
+[function_build_definitions.b0c4307f-be27-425a-841f-31ae20b56bb7]
+codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\message"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "message_functions.lambda_handler"
+source_hash = "b64b2278352ff2a04263e73cc31f012c92264ab06fa0d1401c6f92417676318d"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["MessageFunctions", "ConversationListFunction"]
+
 [layer_build_definitions]
 [layer_build_definitions.33bc5bc4-c103-4a96-982d-d7fee4d49e9d]
 layer_name = "DependenciesLayer"
@@ -48,7 +58,7 @@ codeuri = "C:\\Users\\zhansen\\OneDrive - Neumont College of Computer Science\\D
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "a6cab7ac604fe7b896cc48306a8c858436cc1976c9ff87d10a5894bd6f3dbf53"
+source_hash = "0f69ca243dad9ea4dc1034c1a1e56df09220ded7323e9dae152d86103a465f6e"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
