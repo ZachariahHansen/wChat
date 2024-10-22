@@ -27,7 +27,7 @@ def lambda_handler(event, context):
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                INSERT INTO connection (connection_id, user_id)
+                INSERT INTO connections (connection_id, user_id)
                 VALUES (%s, %s)
             """, (connection_id, user_id))
             conn.commit()

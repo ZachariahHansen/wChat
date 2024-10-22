@@ -27,6 +27,9 @@ Globals:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
         JWT_SECRET: ILoveMyself
+        WEBSOCKET_API_DOMAIN: 
+          Fn::Sub: "${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com"
+        WEBSOCKET_API_STAGE: Prod
     MemorySize: 128
 
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
@@ -64,7 +67,8 @@ Resources:
       Name: WebSocketAPI
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.action"
-
+    
+    
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -447,6 +451,12 @@ Resources:
           Properties:
             Path: /messages/{id}
             Method: delete
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - 'execute-api:ManageConnections'
+              Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*'
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer

@@ -23,7 +23,7 @@ def lambda_handler(event, context):
         with conn.cursor() as cur:
             # Delete the connection record
             cur.execute("""
-                DELETE FROM connection
+                DELETE FROM connections
                 WHERE connection_id = %s
             """, (connection_id,))
             deleted_rows = cur.rowcount
