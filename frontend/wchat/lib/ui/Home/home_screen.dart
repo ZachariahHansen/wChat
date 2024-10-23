@@ -21,7 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _fetchNextShift();
+    
   }
+
+
 
   Future<void> _fetchNextShift() async {
     try {
@@ -59,7 +62,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }
+
+
 
 class CurrentTimeWidget extends StatelessWidget {
   const CurrentTimeWidget({Key? key}) : super(key: key);
@@ -127,4 +133,6 @@ class NextShiftWidget extends StatelessWidget {
       ],
     );
   }
+
+  
 }

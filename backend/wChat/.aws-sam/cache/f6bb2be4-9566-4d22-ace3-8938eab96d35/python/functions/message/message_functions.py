@@ -5,6 +5,7 @@ import psycopg2
 import jwt
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
+from datetime import datetime
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -41,6 +42,11 @@ def get_user_id_from_token(event):
     except Exception as e:
         print(f"Error extracting user ID from token: {str(e)}")
         raise Exception('Invalid or expired token')
+
+def datetime_handler(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f'Object of type {type(obj)} is not JSON serializable')
 
 def get_websocket_endpoint():
     return f"https://{os.environ.get('WEBSOCKET_API_DOMAIN')}/{os.environ.get('WEBSOCKET_API_STAGE')}"
@@ -136,7 +142,15 @@ def send_message(event, cur):
         # Commit the transaction
         cur.connection.commit()
         
-        return response(201, {'id': new_message['id']})
+        return response(201, {
+                'id': new_message['id'],
+                'content': message_data['content'],
+                'time_stamp': new_message['time_stamp'].isoformat(),
+                'sent_by_user_id': user_id,
+                'sender_first_name': sender['first_name'],
+                'sender_last_name': sender['last_name'],
+                'received_by_user_id': message_data['received_by_user_id']
+            })
     
     except Exception as e:
         cur.connection.rollback()
@@ -290,5 +304,5 @@ def response(status_code, body):
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PUT,DELETE"
         },
-        'body': json.dumps(body)
+        'body': json.dumps(body, default=datetime_handler)
     }

@@ -12,7 +12,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _loginApi = LoginApi();
@@ -40,13 +39,10 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () async {
                 final email = _emailController.text;
                 final password = _passwordController.text;
-                final statusCode = await _loginApi.login_service(email, password);
+                final statusCode =
+                    await _loginApi.login_service(email, password);
                 if (statusCode == 200) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => HomeScreen(),
-                    ),
-                  );
+                  Navigator.pushReplacementNamed(context, '/home');
                 } else {
                   final snackBar = SnackBar(
                     content: const Text('Login failed'),

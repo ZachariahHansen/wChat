@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wchat/data/models/user.dart';
 import 'package:wchat/services/api/user_api.dart';
+import 'package:wchat/ui/Message/conversation_screen.dart';
 
 class UserProfileScreen extends StatelessWidget {
   final int userId;
@@ -49,20 +50,30 @@ class UserProfileScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildInfoRow(Icons.person, 'Name', '${profile.firstName} ${profile.lastName}'),
+                      _buildInfoRow(Icons.person, 'Name',
+                          '${profile.firstName} ${profile.lastName}'),
                       _buildInfoRow(Icons.email, 'Email', profile.email),
                       _buildInfoRow(Icons.phone, 'Phone', profile.phoneNumber),
                       _buildInfoRow(Icons.work, 'Role', profile.role),
                       if (profile.department != null)
-                        _buildInfoRow(Icons.business, 'Department', profile.department!),
-                      _buildInfoRow(Icons.admin_panel_settings, 'Manager', profile.isManager ? 'Yes' : 'No'),
+                        _buildInfoRow(
+                            Icons.business, 'Department', profile.department!),
+                      _buildInfoRow(Icons.admin_panel_settings, 'Manager',
+                          profile.isManager ? 'Yes' : 'No'),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // TODO: Implement navigation to message screen
-                            print('Navigate to message screen for user: ${profile.id}');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ConversationScreen(
+                                  otherUserId: userId,
+                                  otherUserName: '${profile.firstName} ${profile.lastName}',
+                                ),
+                              ),
+                            );
                           },
                           child: const Text('Message User'),
                         ),

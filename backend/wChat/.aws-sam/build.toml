@@ -46,7 +46,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "message_functions.lambda_handler"
-source_hash = "9156d7f766f4826ba5e8d9cfe2d81a6562f2e769f95ffc0fd5668e59cf2e75d8"
+source_hash = "89362d8fb3361a88467d431029b394b96d9f44b1549bc9621182330fe3eda91f"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["MessageFunctions", "ConversationListFunction"]
@@ -68,7 +68,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "11632b9090bca7ad8e3dd698b3d23af6301081a66a95047096cbbb4d0c12172f"
+source_hash = "cf0dccab52be3775ae87576485b21ae0f7af634c2a206f36b5fb58aa3cd85039"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
