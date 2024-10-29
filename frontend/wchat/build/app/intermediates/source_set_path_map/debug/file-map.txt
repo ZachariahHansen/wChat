@@ -1,0 +1,29 @@
+com.example.wchat.app-jetified-activity-1.8.1-0 C:\Users\zhansen\.gradle\caches\transforms-3\0dc0e273ca0b4398c31d68909a91daeb\transformed\jetified-activity-1.8.1\res
+com.example.wchat.app-jetified-lifecycle-viewmodel-savedstate-2.7.0-1 C:\Users\zhansen\.gradle\caches\transforms-3\0faafd7e191e8415b253c4ee5683307f\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\res
+com.example.wchat.app-jetified-annotation-experimental-1.4.0-2 C:\Users\zhansen\.gradle\caches\transforms-3\1249a588d1566a2bb1054b235b7bcfa0\transformed\jetified-annotation-experimental-1.4.0\res
+com.example.wchat.app-jetified-tracing-1.2.0-3 C:\Users\zhansen\.gradle\caches\transforms-3\1601ac268d6afbebcd8c08dc745a8266\transformed\jetified-tracing-1.2.0\res
+com.example.wchat.app-jetified-core-1.0.0-4 C:\Users\zhansen\.gradle\caches\transforms-3\164cfb379f44adaf4f68cfb0005ff7ec\transformed\jetified-core-1.0.0\res
+com.example.wchat.app-jetified-window-1.2.0-5 C:\Users\zhansen\.gradle\caches\transforms-3\19cb45ba22ac74ea99d14b01d43a6a8d\transformed\jetified-window-1.2.0\res
+com.example.wchat.app-jetified-window-java-1.2.0-6 C:\Users\zhansen\.gradle\caches\transforms-3\1ff41b59b75b01abed2791d84c583410\transformed\jetified-window-java-1.2.0\res
+com.example.wchat.app-jetified-lifecycle-process-2.7.0-7 C:\Users\zhansen\.gradle\caches\transforms-3\39587ec9c01d32acef0a0ee8bef2a378\transformed\jetified-lifecycle-process-2.7.0\res
+com.example.wchat.app-jetified-core-ktx-1.13.1-8 C:\Users\zhansen\.gradle\caches\transforms-3\4493a828f55d60604d9ccf80f4eb02a7\transformed\jetified-core-ktx-1.13.1\res
+com.example.wchat.app-jetified-lifecycle-livedata-core-ktx-2.7.0-9 C:\Users\zhansen\.gradle\caches\transforms-3\562ba898947534cdc98d1cb32a8c6c00\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\res
+com.example.wchat.app-lifecycle-livedata-core-2.7.0-10 C:\Users\zhansen\.gradle\caches\transforms-3\644e8c8ddb7f5c7c2f027e9f059f7e90\transformed\lifecycle-livedata-core-2.7.0\res
+com.example.wchat.app-core-1.13.1-11 C:\Users\zhansen\.gradle\caches\transforms-3\67a2055b0671aa3010f0bc50e19049d7\transformed\core-1.13.1\res
+com.example.wchat.app-core-runtime-2.2.0-12 C:\Users\zhansen\.gradle\caches\transforms-3\6cf5e322c2e8d9eeafc9ee059d2ec16e\transformed\core-runtime-2.2.0\res
+com.example.wchat.app-jetified-profileinstaller-1.3.1-13 C:\Users\zhansen\.gradle\caches\transforms-3\6e2ca6c16f7f6f879ae3f52acc6ec5c7\transformed\jetified-profileinstaller-1.3.1\res
+com.example.wchat.app-jetified-savedstate-1.2.1-14 C:\Users\zhansen\.gradle\caches\transforms-3\6ff5670a7859083f58d298a4a568ac5a\transformed\jetified-savedstate-1.2.1\res
+com.example.wchat.app-lifecycle-runtime-2.7.0-15 C:\Users\zhansen\.gradle\caches\transforms-3\b9089bd3ad753c87b0d3602d28f86925\transformed\lifecycle-runtime-2.7.0\res
+com.example.wchat.app-fragment-1.7.1-16 C:\Users\zhansen\.gradle\caches\transforms-3\bbcd8efb3404bc28ca2249a78527063b\transformed\fragment-1.7.1\res
+com.example.wchat.app-lifecycle-viewmodel-2.7.0-17 C:\Users\zhansen\.gradle\caches\transforms-3\d7b09cae3c446ea5b2d26bd1d55fcf5a\transformed\lifecycle-viewmodel-2.7.0\res
+com.example.wchat.app-lifecycle-livedata-2.7.0-18 C:\Users\zhansen\.gradle\caches\transforms-3\e8873d4d042455a645c5eabac7ecd5bd\transformed\lifecycle-livedata-2.7.0\res
+com.example.wchat.app-jetified-startup-runtime-1.1.1-19 C:\Users\zhansen\.gradle\caches\transforms-3\f0951692d43473324b13a82f407282ec\transformed\jetified-startup-runtime-1.1.1\res
+com.example.wchat.app-debug-20 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\android\app\src\debug\res
+com.example.wchat.app-main-21 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\android\app\src\main\res
+com.example.wchat.app-pngs-22 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\build\app\generated\res\pngs\debug
+com.example.wchat.app-resValues-23 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\build\app\generated\res\resValues\debug
+com.example.wchat.app-rs-24 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\build\app\generated\res\rs\debug
+com.example.wchat.app-mergeDebugResources-25 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\build\app\intermediates\incremental\debug\mergeDebugResources\merged.dir
+com.example.wchat.app-mergeDebugResources-26 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\build\app\intermediates\incremental\debug\mergeDebugResources\stripped.dir
+com.example.wchat.app-merged_res-27 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\build\app\intermediates\merged_res\debug
+com.example.wchat.app-packaged_res-28 C:\Users\zhansen\OneDrive - Neumont College of Computer Science\Documents\Neumont\0_Capstone\repo\frontend\wchat\build\flutter_secure_storage\intermediates\packaged_res\debug
