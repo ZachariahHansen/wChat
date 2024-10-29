@@ -3,6 +3,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
+from datetime import datetime
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -15,6 +16,11 @@ def get_db_connection():
         user=DB_USER,
         password=DB_PASSWORD
     )
+
+def datetime_handler(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f'Object of type {type(obj)} is not JSON serializable')
 
 def lambda_handler(event, context):
     if event['httpMethod'] == 'OPTIONS':
@@ -30,9 +36,32 @@ def lambda_handler(event, context):
 @authenticate
 def get_all_users(event, cur):
     cur.execute("""
-        SELECT id as user_id, first_name, last_name
-        FROM "user"
-        ORDER BY last_name, first_name
+        WITH user_departments AS (
+            SELECT 
+                dg.user_id,
+                string_agg(d.name, ', ') as departments
+            FROM department_group dg
+            JOIN department d ON dg.department_id = d.id
+            GROUP BY dg.user_id
+        )
+        SELECT 
+            u.id,
+            u.first_name,
+            u.last_name,
+            u.email,
+            u.phone_number,
+            u.hourly_rate,
+            u.is_manager,
+            u.created_at,
+            u.updated_at,
+            r.id as role_id,
+            r.name as role_name,
+            r.description as role_description,
+            COALESCE(ud.departments, '') as departments
+        FROM "user" u
+        LEFT JOIN role r ON u.role_id = r.id
+        LEFT JOIN user_departments ud ON u.id = ud.user_id
+        ORDER BY u.last_name, u.first_name
     """)
     users = cur.fetchall()
     
@@ -47,5 +76,5 @@ def response(status_code, body):
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Methods': 'GET,OPTIONS'
         },
-        'body': json.dumps(body)
+        'body': json.dumps(body, default=datetime_handler)
     }

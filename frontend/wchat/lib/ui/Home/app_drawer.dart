@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class AppDrawer extends StatelessWidget {
   const AppDrawer({Key? key}) : super(key: key);
 
@@ -55,6 +54,14 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Settings'),
             onTap: () {
               Navigator.pushReplacementNamed(context, '/settings');
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.admin_panel_settings),
+            title: const Text('Manager View'),
+            onTap: () {
+              Navigator.pushReplacementNamed(context, '/manager');
             },
           ),
         ],

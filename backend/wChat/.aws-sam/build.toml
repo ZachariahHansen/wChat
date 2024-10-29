@@ -6,40 +6,40 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "department_functions.lambda_handler"
-source_hash = "2b1eb98a55cce31f770027806ee130e86ed72cede28a00b90a2c1bd9a6979f31"
+source_hash = "21c795bd0c3e88380610e1e7af3a52a1e7872245b946dd2dca4447f8c47083d2"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["DepartmentFunctions"]
+functions = ["DepartmentFunctions", "AllDepartmentsFunction", "AssignDepartmentFunction"]
 
 [function_build_definitions.2bdfb1b4-67f9-4f8e-8c74-4a835870f6ab]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\role"
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "role_functions.lambda_handler"
-source_hash = "524a0dfc4c0703ec354a96bb386058160a58a6a0716b3517482737ad5d50f216"
+source_hash = "22d108b04440e4a5e49cebf1cd58d634689e42d86cbd9e0f3f1c79559e817552"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["RoleFunctions"]
+functions = ["RoleFunctions", "AllRolesFunction"]
 
 [function_build_definitions.ce86d59e-889a-490e-8ec0-c466d03a52a8]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\user"
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "df93f156a45d71496499f4a70a433ce52b8eaa1483db6668bbc95e558921d08e"
+source_hash = "bfc7e7ed783785867fa3e53e0a500ccde15eebc32af94c6dfa94b802d1206ac8"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["UserFunctions", "GetAllUsersFunction", "LoginFunctions"]
+functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "LoginFunctions"]
 
 [function_build_definitions.cc329223-9670-4957-a73c-7a94c43229f9]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\shift"
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "99a15089de1feee9b13313fac64a5beb849b7d0c81cd1c7a74021fa8bda6e28e"
+source_hash = "4224e2686bbe9f1e58f6d913493c6d0df7dd317cffc6026ececa2e0e97768db4"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "AssignShiftFunction"]
+functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "ShiftExchangeFunction", "AssignShiftFunction"]
 
 [function_build_definitions.c4be1691-0c8b-46e6-80bc-ccc5af36f61f]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\message"
@@ -68,7 +68,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "cf0dccab52be3775ae87576485b21ae0f7af634c2a206f36b5fb58aa3cd85039"
+source_hash = "49d44f64cff5610e16afb3d5fdb535fbccd7f4c212579b913ae129884aea0238"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
@@ -78,6 +78,6 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "bb6dd1f918e53d257496bbb32bcb0ce2f7503b79755f2b0dae146c6df2323d3f"
+source_hash = "ad729ffb4f15fddb0912803c3238f56f583ed76b5fd38a68a34cebe85c93ba47"
 manifest_hash = ""
 layer = "AuthLayer"

@@ -27,6 +27,11 @@ def lambda_handler(event, context):
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             http_method = event['httpMethod']
+            path = event['path']    
+
+            # Handle the /users/register endpoint separately
+            if path.endswith('/users/register') and http_method == 'POST':
+                return create_user(event, cur)
             
             if http_method == 'GET':
                 return get_user(event, cur)

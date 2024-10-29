@@ -169,4 +169,58 @@ class ShiftApi {
       throw Exception('Error getting user available shifts: $e');
     }
   }
+
+  Future<Map<String, dynamic>> getAvailableShifts() async {
+    if (baseUrl == null) await _loadUrl();
+    final headers = await _getHeaders();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/shift-exchange'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load available shifts');
+    }
+  }
+
+  Future<void> pickupShift(int shiftId) async {
+    if (baseUrl == null) await _loadUrl();
+    final headers = await _getHeaders();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/shift-exchange/pickup'),
+      headers: headers,
+      body: jsonEncode({
+        'shift_id': shiftId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final errorData = json.decode(response.body);
+      final errorMessage = errorData['error'] ?? 'Failed to pick up shift';
+      throw Exception(errorMessage);
+    }
+  }
+
+  Future<void> relinquishShift(int shiftId) async {
+    if (baseUrl == null) await _loadUrl();
+    final headers = await _getHeaders();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/shift-exchange/relinquish'),
+      headers: headers,
+      body: jsonEncode({
+        'shift_id': shiftId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      final errorData = json.decode(response.body);
+      final errorMessage = errorData['error'] ?? 'Failed to relinquish shift';
+      throw Exception(errorMessage);
+    }
+  }
 }

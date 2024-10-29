@@ -215,6 +215,43 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
+  AllDepartmentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: all_departments.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/department/
+      Events:
+        GetAllDepartments:
+          Type: Api
+          Properties:
+            Path: /departments/all
+            Method: get
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  AssignDepartmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: assign_department.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/department/
+      Events:
+        AssignUserDepartment:
+          Type: Api
+          Properties:
+            Path: /assign-department
+            Method: post
+        RemoveUserDepartment:
+          Type: Api
+          Properties:
+            Path: /assign-department/{department_id}/user/{user_id}
+            Method: delete
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
   RoleFunctions:
     Type: AWS::Serverless::Function
     Properties:
@@ -242,6 +279,38 @@ Resources:
           Properties:
             Path: /roles/{id}
             Method: delete
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  AllRolesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: all_roles.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/role/
+      Events:
+        GetAllRoles:
+          Type: Api
+          Properties:
+            Path: /roles/all
+            Method: get
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  UpdateUserRoleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: update_user_role.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Events:
+        UpdateUserRole:
+          Type: Api
+          Properties:
+            Path: /users/{id}/role
+            Method: put
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -403,6 +472,32 @@ Resources:
           Type: Api
           Properties:
             Path: /shifts/next/{id}
+            Method: get
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  ShiftExchangeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: shift_exchange.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/shift/
+      Events:
+        ShiftRelinquish:
+          Type: Api
+          Properties:
+            Path: /shift-exchange/relinquish
+            Method: post
+        ShiftPickup:
+          Type: Api
+          Properties:
+            Path: /shift-exchange/pickup
+            Method: post
+        GetAvailableShifts:
+          Type: Api
+          Properties:
+            Path: /shift-exchange
             Method: get
       Layers:
         - !Ref DependenciesLayer

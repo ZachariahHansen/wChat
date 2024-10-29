@@ -1,5 +1,5 @@
 # auth.py (place this in a shared location accessible to all your Lambdas)
-
+import json
 import os
 import jwt
 from datetime import datetime, timedelta

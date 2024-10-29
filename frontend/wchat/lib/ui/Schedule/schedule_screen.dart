@@ -16,6 +16,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   DateTime? _selectedDay;
   late ShiftApi _shiftApi;
   Map<DateTime, List<Shift>> _events = {};
+  int _availableShiftsCount = 0;
+  bool _isLoadingAvailableShifts = true;
 
   @override
   void initState() {
@@ -23,6 +25,22 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     _shiftApi = ShiftApi();
     _selectedDay = _focusedDay;
     _fetchShifts();
+    _fetchAvailableShifts();
+  }
+
+  Future<void> _fetchAvailableShifts() async {
+    try {
+      final response = await _shiftApi.getAvailableShifts();
+      setState(() {
+        _availableShiftsCount = (response['shifts'] as List).length;
+        _isLoadingAvailableShifts = false;
+      });
+    } catch (e) {
+      print('Error fetching available shifts: $e');
+      setState(() {
+        _isLoadingAvailableShifts = false;
+      });
+    }
   }
 
   Future<void> _fetchShifts() async {
@@ -102,6 +120,59 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   .toList(),
             ),
           ),
+        ],
+      ),
+      floatingActionButton: Stack(
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/shifts/available').then((_) {
+                // Refresh available shifts count when returning from the available shifts screen
+                _fetchAvailableShifts();
+              });
+            },
+            child: const Icon(Icons.attach_money),
+            backgroundColor: _availableShiftsCount > 0 
+              ? Theme.of(context).colorScheme.primary 
+              : Theme.of(context).colorScheme.secondary,
+          ),
+          if (_availableShiftsCount > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 20,
+                  minHeight: 20,
+                ),
+                child: Text(
+                  '$_availableShiftsCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          if (_isLoadingAvailableShifts)
+            const Positioned(
+              right: 0,
+              top: 0,
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ),
         ],
       ),
     );
