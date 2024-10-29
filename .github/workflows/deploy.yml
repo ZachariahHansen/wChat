@@ -1,0 +1,44 @@
+name: Deploy Frontend to Squarespace
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+    paths:
+      - 'frontend/wchat/build/web'  # Adjust this path to match your Flutter app location
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/wchat/build/web  # Adjust this path
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: flutter build web
+
+      - name: Deploy to Squarespace
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages  # The branch the action should deploy to
+          folder: frontend/wchat/build/web # Adjust this path to your web build output
+          clean: true  # Automatically remove deleted files from the deployment branch
+          token: ${{ secrets.GITHUB_TOKEN }}  # GitHub will automatically create this
+
+      # Optional: Add step to sync with Squarespace if needed
+      - name: Sync with Squarespace
+        run: |
+          # Add any additional commands needed for Squarespace sync
+          # This might involve using Squarespace's developer tools or APIs
