@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wchat/data/app_theme.dart';
 
 class ManagerDrawer extends StatelessWidget {
   const ManagerDrawer({Key? key}) : super(key: key);
@@ -6,80 +7,129 @@ class ManagerDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.indigo, // Different color to distinguish manager view
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  'wChat',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
+      child: SafeArea(
+        child: Column(
+          children: <Widget>[
+            _buildHeader(context),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.dashboard_outlined,
+                    title: 'Dashboard',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/manager'),
                   ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Manager Dashboard',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.business_outlined,
+                    title: 'Departments',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/manager/departments'),
                   ),
-                ),
-              ],
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.work_outline,
+                    title: 'Roles',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/manager/roles'),
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.schedule_outlined,
+                    title: 'Shifts',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/manager/shifts'),
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.verified_user_outlined,
+                    title: 'Users',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/manager/users'),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Divider(height: 1),
+                  ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.arrow_back_outlined,
+                    title: 'Back to Employee View',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/home'),
+                    highlight: true,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.secondary,
+            AppColors.secondaryLight,
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'wChat',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: AppColors.textLight,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text('Dashboard'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/manager');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.business),
-            title: const Text('Departments'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/manager/departments');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.work),
-            title: const Text('Roles'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/manager/roles');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.schedule),
-            title: const Text('Shifts'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/manager/shifts');
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.verified_user_outlined),
-            title: const Text('Users'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/manager/users');
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.arrow_back),
-            title: const Text('Back to Employee View'),
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/home');
-            },
+          const SizedBox(height: 8),
+          Text(
+            'Manager Dashboard',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppColors.textLight.withOpacity(0.9),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool highlight = false,
+  }) {
+    return ListTile(
+      leading: Container(
+        width: 36,
+        alignment: Alignment.center,
+        child: Icon(
+          icon,
+          color: highlight ? AppColors.secondary : AppColors.textSecondary,
+          size: 24,
+        ),
+      ),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: highlight ? AppColors.secondary : AppColors.textPrimary,
+          fontWeight: highlight ? FontWeight.w600 : FontWeight.normal,
+        ),
+      ),
+      onTap: onTap,
+      dense: true,
+      visualDensity: const VisualDensity(horizontal: -4, vertical: -2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
     );
   }
 }
