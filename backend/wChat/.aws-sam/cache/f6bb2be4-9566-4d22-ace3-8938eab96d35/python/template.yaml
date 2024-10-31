@@ -30,7 +30,9 @@ Globals:
         WEBSOCKET_API_DOMAIN: 
           Fn::Sub: "${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com"
         WEBSOCKET_API_STAGE: Prod
+        AuthorizerResultTtlInSeconds: 0  # This disables caching
     MemorySize: 128
+        
 
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
