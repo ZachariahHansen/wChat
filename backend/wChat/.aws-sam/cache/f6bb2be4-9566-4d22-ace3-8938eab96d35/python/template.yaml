@@ -32,7 +32,7 @@ Globals:
         WEBSOCKET_API_STAGE: Prod
         AuthorizerResultTtlInSeconds: 0  # This disables caching
     MemorySize: 128
-        
+    
 
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
@@ -213,6 +213,16 @@ Resources:
           Properties:
             Path: /departments/{id}
             Method: delete
+        OptionsDepartment:
+          Type: Api
+          Properties:
+            Path: /departments
+            Method: options
+        OptionsDepartmentId:
+          Type: Api
+          Properties:
+            Path: /departments/{id}
+            Method: optionss
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -229,6 +239,11 @@ Resources:
           Properties:
             Path: /departments/all
             Method: get
+        OptionsDepartments:
+          Type: Api
+          Properties:
+            Path: /departments/all
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -250,6 +265,16 @@ Resources:
           Properties:
             Path: /assign-department/{department_id}/user/{user_id}
             Method: delete
+        OptionsAssignDepartment:
+          Type: Api
+          Properties:
+            Path: /assign-department
+            Method: options
+        OptionsRemoveUserDepartment:
+          Type: Api
+          Properties:
+            Path: /assign-department/{department_id}/user/{user_id}
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -281,6 +306,16 @@ Resources:
           Properties:
             Path: /roles/{id}
             Method: delete
+        OptionsRole:
+          Type: Api
+          Properties:
+            Path: /roles
+            Method: options
+        OptionsRoleId:
+          Type: Api
+          Properties:
+            Path: /roles/{id}
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -297,6 +332,11 @@ Resources:
           Properties:
             Path: /roles/all
             Method: get
+        OptionsRoles:
+          Type: Api
+          Properties:
+            Path: /roles/all
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -313,6 +353,11 @@ Resources:
           Properties:
             Path: /users/{id}/role
             Method: put
+        OptionsUserRole:
+          Type: Api
+          Properties:
+            Path: /users/{id}/role
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -358,6 +403,37 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
+  ProfilePictureFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: pfp.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Events:
+        GetProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: get
+        UpdateProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: put
+        DeleteProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: delete
+        OptionsProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
   GetAllUsersFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -370,6 +446,11 @@ Resources:
           Properties:
             Path: /users/all
             Method: get
+        OptionsAllUsers:
+          Type: Api
+          Properties:
+            Path: /users/all
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -427,6 +508,11 @@ Resources:
           Properties:
             Path: /shifts
             Method: options
+        OptionsShiftId:
+          Type: Api
+          Properties:
+            Path: /shifts/{id}
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -443,6 +529,11 @@ Resources:
           Properties:
             Path: /shifts/user/{id}
             Method: get
+        OptionsShiftsUser:
+          Type: Api
+          Properties:
+            Path: /shifts/user/{id}
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -459,6 +550,11 @@ Resources:
           Properties:
             Path: /shifts/department/{id}
             Method: get
+        OptionsShiftsDepartment:
+          Type: Api
+          Properties:
+            Path: /shifts/department/{id}
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -475,6 +571,11 @@ Resources:
           Properties:
             Path: /shifts/next/{id}
             Method: get
+        OptionsNextShift:
+          Type: Api
+          Properties:
+            Path: /shifts/next/{id}
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -501,6 +602,21 @@ Resources:
           Properties:
             Path: /shift-exchange
             Method: get
+        OptionsShiftExchange:
+          Type: Api
+          Properties:
+            Path: /shift-exchange
+            Method: options
+        OptionsShiftRelinquish:
+          Type: Api
+          Properties:
+            Path: /shift-exchange/relinquish
+            Method: options
+        OptionsShiftPickup:
+          Type: Api
+          Properties:
+            Path: /shift-exchange/pickup
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
@@ -517,6 +633,11 @@ Resources:
           Properties:
             Path: /shifts/assign
             Method: put
+        OptionsAssignShift:
+          Type: Api
+          Properties:
+            Path: /shifts/assign
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer  
@@ -548,6 +669,16 @@ Resources:
           Properties:
             Path: /messages/{id}
             Method: delete
+        OptionsMessage:
+          Type: Api
+          Properties:
+            Path: /messages
+            Method: options
+        OptionsMessageId:
+          Type: Api
+          Properties:
+            Path: /messages/{id}
+            Method: options
       Policies:
         - Statement:
             - Effect: Allow
@@ -570,6 +701,11 @@ Resources:
           Properties:
             Path: /messages/conversations
             Method: get
+        OptionsConversations:
+          Type: Api
+          Properties:
+            Path: /messages/conversations
+            Method: options
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
