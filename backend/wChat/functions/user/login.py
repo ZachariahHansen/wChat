@@ -25,6 +25,9 @@ def get_db_connection():
     )
 
 def lambda_handler(event, context):
+    # Add debug logging
+    print("Received event:", json.dumps(event))
+    
     if event['httpMethod'] == 'OPTIONS':
         return response(200, 'OK')
 
@@ -32,11 +35,14 @@ def lambda_handler(event, context):
         return response(405, {'error': 'Method not allowed'})
 
     try:
+        print("Request body:", event.get('body'))
         body = json.loads(event['body'])
+        print("Parsed body:", body)
         email = body['email']
         password = body['password']
-    except (KeyError, json.JSONDecodeError):
-        return response(400, {'error': 'Invalid request body'})
+    except (KeyError, json.JSONDecodeError) as e:
+        print("Error parsing request body:", str(e))
+        return response(400, {'error': 'Invalid request body', 'details': str(e)})
 
     conn = get_db_connection()
     try:
@@ -48,6 +54,7 @@ def lambda_handler(event, context):
                 WHERE u.email = %s
             """, (email,))
             user = cur.fetchone()
+            print("Found user:", user is not None)
 
             if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
                 token = generate_jwt_token(user)

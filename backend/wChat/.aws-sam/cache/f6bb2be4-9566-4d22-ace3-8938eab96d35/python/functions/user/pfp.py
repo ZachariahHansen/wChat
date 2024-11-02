@@ -83,12 +83,12 @@ def get_profile_picture(event, cur):
 @authenticate
 def update_profile_picture(event, cur):
     try:
-        # Debug logging for incoming event
-        print("Full event:", json.dumps(event, default=str))
-        
         user_id = event['pathParameters']['id']
         content_type = event.get('headers', {}).get('Content-Type', '')
-        print(f"Content-Type: {content_type}")
+        
+        print("Headers:", event.get('headers', {}))
+        print("Content-Type:", content_type)
+        print("Is base64 encoded:", event.get('isBase64Encoded', False))
         
         # Validate content type
         if not content_type:
@@ -101,27 +101,49 @@ def update_profile_picture(event, cur):
         
         # Get body content
         body = event.get('body', '')
-        is_base64 = event.get('isBase64Encoded', False)
-        print(f"Is base64 encoded: {is_base64}")
         
         if not body:
             return response(400, {'error': 'No image data provided'})
         
         try:
-            # Handle base64 encoded data from API Gateway
-            if is_base64:
+            # If the content is base64 encoded by API Gateway
+            if event.get('isBase64Encoded', False):
                 image_data = base64.b64decode(body)
             else:
-                # If somehow we got raw data, encode it first then decode
-                # This handles cases where the data might be double-encoded
+                # Handle raw binary data
                 try:
-                    image_data = base64.b64decode(body)
-                except:
+                    # First, try to handle it as a string that needs to be encoded to bytes
+                    if isinstance(body, str):
+                        image_data = body.encode('utf-8')
+                    else:
+                        image_data = body
+                        
+                    # Verify we have valid image data
+                    if content_type == 'image/png':
+                        png_header = b'\x89PNG\r\n\x1a\n'
+                        if not image_data.startswith(png_header):
+                            return response(400, {
+                                'error': 'Invalid PNG image data',
+                                'help': 'Please ensure you are sending a valid PNG file through binary body in Postman'
+                            })
+                    elif content_type == 'image/jpeg':
+                        jpeg_header = b'\xff\xd8\xff'
+                        if not image_data.startswith(jpeg_header):
+                            return response(400, {
+                                'error': 'Invalid JPEG image data',
+                                'help': 'Please ensure you are sending a valid JPEG file through binary body in Postman'
+                            })
+                            
+                except Exception as e:
+                    print(f"Error processing binary data: {str(e)}")
                     return response(400, {
-                        'error': 'Invalid image data format. Please ensure you are sending binary data through Postman.'
+                        'error': 'Could not process image data',
+                        'details': str(e),
+                        'help': 'Please ensure in Postman:\n1. Body is set to "binary"\n2. A valid image file is selected\n3. Content-Type header matches your image type'
                     })
             
             print(f"Processed image data length: {len(image_data)} bytes")
+            print(f"First few bytes (hex): {image_data[:8].hex()}")
             
             # Update the profile picture in the database
             cur.execute("""
@@ -141,13 +163,13 @@ def update_profile_picture(event, cur):
             return response(200, {'message': 'Profile picture updated successfully'})
             
         except Exception as e:
-            print(f"Error processing image data: {str(e)}")
+            print(f"Error processing image: {str(e)}")
             import traceback
             print("Traceback:", traceback.format_exc())
             return response(400, {
                 'error': 'Invalid image data format',
                 'details': str(e),
-                'help': 'Please ensure you are using binary file upload in Postman'
+                'help': 'Please check your Postman settings:\n1. Body should be set to "binary"\n2. Content-Type should match your image type\n3. A valid image file should be selected'
             })
             
     except Exception as e:
@@ -155,7 +177,6 @@ def update_profile_picture(event, cur):
         import traceback
         print("Traceback:", traceback.format_exc())
         return response(500, {'error': 'Internal server error', 'details': str(e)})
-
 
 @authenticate
 def delete_profile_picture(event, cur):
