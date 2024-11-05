@@ -96,55 +96,55 @@ class UserApi {
 
 // This method returns the generated password
 // TODO: add email service to send the password to the user
-Future<String> createUser(Map<String, dynamic> userData) async {
-  if (baseUrl == null) {
-    await _loadUrl();
+  Future<String> createUser(Map<String, dynamic> userData) async {
+    if (baseUrl == null) {
+      await _loadUrl();
+    }
+
+    final password = _generateSecurePassword();
+
+    final userDataWithPassword = {
+      ...userData,
+      'password': password,
+    };
+
+    final token = await _storage.readSecureData('token');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/users/register'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(userDataWithPassword),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create user');
+    }
+
+    // Return the generated password
+    return password;
   }
 
-  final password = _generateSecurePassword();
-  
-  final userDataWithPassword = {
-    ...userData,
-    'password': password,
-  };
+  String _generateSecurePassword() {
+    final length = 12;
+    final letterLowerCase = "abcdefghijklmnopqrstuvwxyz";
+    final letterUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    final number = '0123456789';
+    final special = '@#%^*>\$@?/[]=+';
 
-  final token = await _storage.readSecureData('token');
+    String chars = '';
+    chars += letterLowerCase;
+    chars += letterUpperCase;
+    chars += number;
+    chars += special;
 
-  final response = await http.post(
-    Uri.parse('$baseUrl/users/register'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Authorization': 'Bearer $token',
-    },
-    body: jsonEncode(userDataWithPassword),
-  );
-
-  if (response.statusCode != 201) {
-    throw Exception('Failed to create user');
+    return List.generate(length, (index) {
+      final indexRandom = Random.secure().nextInt(chars.length);
+      return chars[indexRandom];
+    }).join('');
   }
-
-  // Return the generated password
-  return password;
-}
-
-String _generateSecurePassword() {
-  final length = 12;
-  final letterLowerCase = "abcdefghijklmnopqrstuvwxyz";
-  final letterUpperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  final number = '0123456789';
-  final special = '@#%^*>\$@?/[]=+';
-  
-  String chars = '';
-  chars += letterLowerCase;
-  chars += letterUpperCase;
-  chars += number;
-  chars += special;
-
-  return List.generate(length, (index) {
-    final indexRandom = Random.secure().nextInt(chars.length);
-    return chars[indexRandom];
-  }).join('');
-}
 
   Future<void> updateUser(int userId, Map<String, dynamic> userData) async {
     if (baseUrl == null) {
@@ -186,4 +186,62 @@ String _generateSecurePassword() {
       throw Exception('Failed to delete user');
     }
   }
+
+  Future<bool> updatePassword(
+      int userId, String currentPassword, String newPassword) async {
+    final token = await _storage.readSecureData('token');
+
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/$userId/password'),
+        headers: {
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating password: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateName(int userId, Map<String, String> nameData) async {
+  try {
+    if (baseUrl == null) {
+      await _loadUrl();
+    }
+
+    final token = await _storage.readSecureData('token');
+    if (token == null) {
+      print('Error: No authentication token found');
+      return false;
+    }
+
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/$userId'),
+      headers: {
+        'Authorization': 'Bearer $token'
+      },
+      body: jsonEncode(nameData),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    }
+
+    // Log the error for debugging but return false
+    final responseData = jsonDecode(response.body);
+    print('Failed to update name: ${responseData['error'] ?? response.body}');
+    return false;
+    
+  } catch (e) {
+    print('Error updating name: $e');
+    return false;
+  }
+}
 }

@@ -12,6 +12,8 @@ import 'package:wchat/ui/Home/manager_home_screen.dart';
 import 'package:wchat/ui/Manager/Department/department_screen.dart';
 import 'package:wchat/ui/Manager/Roles/roles_screen.dart';
 import 'package:wchat/ui/Manager/User/users_screen.dart';
+import 'package:wchat/ui/Profile/edit_profile_screen.dart';
+import 'package:wchat/ui/Manager/Shift/shifts_screen.dart';
 
 void main() {
   runApp(
@@ -47,17 +49,26 @@ class MyApp extends StatelessWidget {
         '/manager/departments': (context) => const DepartmentScreen(),
         '/manager/roles': (context) => const RoleScreen(),
         '/manager/users': (context) => const UserManagementScreen(),
+        '/manager/shifts': (context) => const ShiftsScreen(),
+
         
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/profile') {
           final userId = settings.arguments as int;
           return MaterialPageRoute(
-            builder: (context) => UserProfileScreen(userId: userId),
+            builder: (context) => ProfileScreen(userId: userId),
+          );
+        }
+        else if (settings.name == '/edit-profile') {
+          final userId = settings.arguments as int;
+          return MaterialPageRoute(
+            builder: (context) => EditProfileScreen(userId: userId),
           );
         }
         return null;
       },
+      
     );
   }
 }

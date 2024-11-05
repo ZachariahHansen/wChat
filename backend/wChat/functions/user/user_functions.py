@@ -94,37 +94,93 @@ def create_user(event, cur):
 
 @authenticate
 def update_user(event, cur):
-    user_id = event['pathParameters']['id']
-    user_data = json.loads(event['body'])
-    
-    update_fields = []
-    update_values = []
-    
-    for field in ['first_name', 'last_name', 'email', 'phone_number', 'hourly_rate', 'role_id', 'is_manager']:
-        if field in user_data:
-            update_fields.append(f"{field} = %s")
-            update_values.append(user_data[field])
-    
-    if not update_fields:
-        return response(400, {'error': 'No fields to update'})
-    
-    update_fields.append("updated_at = CURRENT_TIMESTAMP")
-    update_values.append(user_id)
-    
-    cur.execute(f"""
-        UPDATE "user"
-        SET {', '.join(update_fields)}
-        WHERE id = %s
-        RETURNING id
-    """, tuple(update_values))
-    
-    updated_user = cur.fetchone()
-    cur.connection.commit()
-    
-    if updated_user:
-        return response(200, {'message': 'User updated successfully'})
-    else:
-        return response(404, {'error': 'User not found'})
+    try:
+        # Get user ID from path parameters and convert to int
+        user_id = int(event['pathParameters']['id'])
+        
+        # Get and validate JWT token
+        auth_header = event.get('headers', {}).get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return response(401, {'error': 'Invalid authorization header'})
+        
+        token = auth_header.split(' ')[1]
+        try:
+            # Decode and verify JWT token
+            payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+            token_user_id = payload.get('user_id')
+            
+            # Verify that the token user_id matches the requested user_id
+            if token_user_id != user_id:
+                return response(403, {'error': 'Not authorized to update this user\'s information'})
+                
+        except jwt.ExpiredSignatureError:
+            return response(401, {'error': 'Token has expired'})
+        except jwt.InvalidTokenError:
+            return response(401, {'error': 'Invalid token'})
+        
+        # Parse request body
+        user_data = json.loads(event['body'])
+        
+        update_fields = []
+        update_values = []
+        
+        # Define allowed fields and their validation rules
+        allowed_fields = {
+            'first_name': str,
+            'last_name': str,
+            'email': str,
+            'phone_number': str,
+            'hourly_rate': (float, int),
+            'role_id': int,
+            'is_manager': bool
+        }
+        
+        # Validate and process each field
+        for field, expected_type in allowed_fields.items():
+            if field in user_data:
+                value = user_data[field]
+                
+                # Check if value is of expected type
+                if not isinstance(value, expected_type):
+                    if expected_type == (float, int) and isinstance(value, (float, int)):
+                        # Special case for hourly_rate which can be float or int
+                        pass
+                    else:
+                        return response(400, {'error': f'Invalid type for field {field}'})
+                
+                update_fields.append(f"{field} = %s")
+                update_values.append(value)
+        
+        if not update_fields:
+            return response(400, {'error': 'No fields to update'})
+        
+        # Add updated_at timestamp
+        update_fields.append("updated_at = CURRENT_TIMESTAMP")
+        
+        # Add WHERE clause parameter
+        update_values.append(user_id)
+        
+        # Execute update query
+        cur.execute(f"""
+            UPDATE "user"
+            SET {', '.join(update_fields)}
+            WHERE id = %s
+            RETURNING id
+        """, tuple(update_values))
+        
+        updated_user = cur.fetchone()
+        cur.connection.commit()
+        
+        if updated_user:
+            return response(200, {'message': 'User updated successfully'})
+        else:
+            return response(404, {'error': 'User not found'})
+            
+    except ValueError as e:
+        return response(400, {'error': f'Invalid input: {str(e)}'})
+    except Exception as e:
+        print(f"Error updating user: {str(e)}")
+        return response(500, {'error': 'Internal server error'})
 
 @authenticate
 def delete_user(event, cur):

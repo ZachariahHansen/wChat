@@ -1,9 +1,12 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
 import 'package:wchat/data/models/shift.dart';
 import 'package:wchat/services/api/shift_api.dart';
+import 'package:wchat/services/api/pfp_api.dart'; 
 import 'package:intl/intl.dart';
 import 'package:wchat/data/app_theme.dart';
+import 'package:wchat/services/storage/jwt_decoder.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,11 +19,47 @@ class _HomeScreenState extends State<HomeScreen> {
   Shift? _nextShift;
   bool _isLoading = true;
   final ShiftApi _shiftApi = ShiftApi();
-  
+  final ProfilePictureApi _pfpApi = ProfilePictureApi();  
+  Uint8List? _profilePicture;  
+  int? _userId;
+
   @override
   void initState() {
     super.initState();
     _fetchNextShift();
+    _loadUserId().then((_) {
+    _loadProfilePicture();
+  });
+  }
+
+   Future<void> _loadUserId() async {
+  try {
+    int? userId = await JwtDecoder.getUserId();
+    if (userId == null) {
+      throw Exception('User ID not found in JWT token');
+    }
+    setState(() {  
+      _userId = userId;  
+    });
+  } catch (e) {
+    print('Error loading user ID: $e');
+  }
+}
+
+  Future<void> _loadProfilePicture() async {
+    try {
+      if (_userId == null) {
+        throw Exception('User ID not found');
+      }
+      final pfp = await _pfpApi.getProfilePicture(_userId!);
+      if (mounted) {
+        setState(() {
+          _profilePicture = pfp;
+        });
+      }
+    } catch (e) {
+      print('Error loading profile picture: $e');
+    }
   }
 
   Future<void> _fetchNextShift() async {
@@ -39,6 +78,31 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _handleProfileMenuSelection(String value) {
+  if (_userId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Unable to load user profile. Please try logging in again.'),
+        backgroundColor: AppColors.error,
+      ),
+    );
+    return;
+  }
+
+  switch (value) {
+    case 'profile':
+      Navigator.pushNamed(
+        context,
+        '/profile',
+        arguments: _userId,
+      );
+      break;
+    case 'settings':
+      Navigator.pushNamed(context, '/settings');
+      break;
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,6 +110,54 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Home'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.textLight,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: PopupMenuButton<String>(
+              offset: const Offset(0, 45),
+              onSelected: _handleProfileMenuSelection,
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.primaryLight,
+                backgroundImage: _profilePicture != null
+                    ? MemoryImage(_profilePicture!)
+                    : null,
+                child: _profilePicture == null
+                    ? const Icon(
+                        Icons.person,
+                        color: AppColors.textLight,
+                      )
+                    : null,
+              ),
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem<String>(
+                  value: 'profile',
+                  child: ListTile(
+                    leading: const Icon(Icons.person_outline),
+                    title: Text(
+                      'Profile',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'settings',
+                  child: ListTile(
+                    leading: const Icon(Icons.settings_outlined),
+                    title: Text(
+                      'Settings',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       drawer: const AppDrawer(),
       backgroundColor: AppColors.surface,
@@ -76,6 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+// Rest of your CurrentTimeWidget and NextShiftWidget remain the same
 
 class CurrentTimeWidget extends StatelessWidget {
   const CurrentTimeWidget({Key? key}) : super(key: key);

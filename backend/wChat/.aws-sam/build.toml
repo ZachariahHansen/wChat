@@ -26,20 +26,20 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "078cc3c6911cfb16acba70dfaa29517874a1f774b292fbccaeda3c542ad1bd7f"
+source_hash = "18e2eb6665e5e86f6968d315fa4f3feef8bbbc77eeb5557ea6c543c66aaed998"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["UpdateUserRoleFunction", "UserFunctions", "ProfilePictureFunctions", "GetAllUsersFunction", "LoginFunctions"]
+functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "LoginFunctions", "ProfilePictureFunctions"]
 
 [function_build_definitions.cc329223-9670-4957-a73c-7a94c43229f9]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\shift"
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "4224e2686bbe9f1e58f6d913493c6d0df7dd317cffc6026ececa2e0e97768db4"
+source_hash = "97ecc974eaf7f57baec883d35952d3cf73820428a56e5f743c3a41434f0fae66"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["ShiftFunctions", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "ShiftExchangeFunction", "AssignShiftFunction"]
+functions = ["ShiftFunctions", "GetAllShiftsFunction", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "ShiftExchangeFunction", "AssignShiftFunction", "UnassignShiftFunction"]
 
 [function_build_definitions.c4be1691-0c8b-46e6-80bc-ccc5af36f61f]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\message"
@@ -68,7 +68,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "5acf400f636cb76270839f0f48d01226435ef820c6d276b589eb89fef36ba068"
+source_hash = "326aa10cc2d015fe9cd7e81aa4c46ae564c0ac5db889ed0a77d513d11c195351"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

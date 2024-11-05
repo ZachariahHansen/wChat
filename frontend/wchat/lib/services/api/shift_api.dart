@@ -223,4 +223,184 @@ class ShiftApi {
       throw Exception(errorMessage);
     }
   }
+
+  Future<bool> assignShift(int shiftId, int userId) async {
+    try {
+      if (baseUrl == null) await _loadUrl();
+
+      final headers = await _getHeaders();
+
+      final url = Uri.parse('$baseUrl/shifts/assign');
+
+      final body = jsonEncode({
+        'shift_id': shiftId,
+        'user_id': userId,
+      });
+
+      final response = await http.put(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        print('Successfully assigned shift: ${responseData['message']}');
+        return true;
+      } else {
+        final errorMessage = responseData['error'] ?? 'Failed to assign shift';
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      print('Error assigning shift: $e');
+      throw Exception('Failed to assign shift: $e');
+    }
+  }
+
+  Future<ShiftResponse> getAllShifts({
+    int? departmentId,
+    int? userId,
+    String? status,
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 100,
+    int offset = 0,
+  }) async {
+    try {
+      if (baseUrl == null) await _loadUrl();
+
+      // Get the authentication token
+      final headers = await _getHeaders();
+
+      // Build query parameters
+      final queryParams = <String, String>{
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+      };
+
+      // Add optional filters if provided
+      if (departmentId != null) {
+        queryParams['department_id'] = departmentId.toString();
+      }
+      if (userId != null) {
+        queryParams['user_id'] = userId.toString();
+      }
+      if (status != null) {
+        queryParams['status'] = status;
+      }
+      if (startDate != null) {
+        queryParams['start_date'] = startDate.toIso8601String();
+      }
+      if (endDate != null) {
+        queryParams['end_date'] = endDate.toIso8601String();
+      }
+
+      // Build the URL with query parameters
+      final uri = Uri.parse('$baseUrl/shifts/all')
+          .replace(queryParameters: queryParams);
+
+      // Make the GET request
+      final response = await http.get(
+        uri,
+        headers: headers,
+      );
+
+      // Parse the response
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // Parse shifts array
+        final List<dynamic> shiftsJson = responseData['shifts'];
+        final List<Shift> shifts =
+            shiftsJson.map((json) => Shift.fromJson(json)).toList();
+
+        // Parse pagination data
+        final pagination = PaginationInfo(
+          total: responseData['pagination']['total'],
+          limit: responseData['pagination']['limit'],
+          offset: responseData['pagination']['offset'],
+        );
+
+        return ShiftResponse(shifts: shifts, pagination: pagination);
+      } else {
+        final errorMessage =
+            jsonDecode(response.body)['error'] ?? 'Failed to fetch shifts';
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      print('Error fetching shifts: $e');
+      throw Exception('Failed to fetch shifts: $e');
+    }
+  }
+
+  Future<bool> unassignShift(int shiftId) async {
+    try {
+      if (baseUrl == null) await _loadUrl();
+
+      final headers = await _getHeaders();
+
+      final url = Uri.parse('$baseUrl/shifts/unassign');
+
+      final body = jsonEncode({
+        'shift_id': shiftId,
+      });
+
+      final response = await http.put(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        print('Successfully unassigned shift: ${responseData['message']}');
+        return true;
+      } else {
+        final errorMessage =
+            responseData['error'] ?? 'Failed to unassign shift';
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      print('Error unassigning shift: $e');
+      throw Exception('Failed to unassign shift: $e');
+    }
+  }
+}
+
+/// Response class containing shifts and pagination information
+class ShiftResponse {
+  final List<Shift> shifts;
+  final PaginationInfo pagination;
+
+  ShiftResponse({
+    required this.shifts,
+    required this.pagination,
+  });
+}
+
+/// Pagination information class
+class PaginationInfo {
+  final int total;
+  final int limit;
+  final int offset;
+
+  PaginationInfo({
+    required this.total,
+    required this.limit,
+    required this.offset,
+  });
+
+  /// Calculate the total number of pages
+  int get totalPages => (total / limit).ceil();
+
+  /// Calculate the current page number (1-based)
+  int get currentPage => (offset / limit).floor() + 1;
+
+  /// Check if there is a next page
+  bool get hasNextPage => offset + limit < total;
+
+  /// Check if there is a previous page
+  bool get hasPreviousPage => offset > 0;
 }

@@ -403,37 +403,6 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
-  ProfilePictureFunctions:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: pfp.lambda_handler
-      Runtime: python3.12
-      CodeUri: functions/user/
-      Events:
-        GetProfilePicture:
-          Type: Api
-          Properties:
-            Path: /users/{id}/profile-picture
-            Method: get
-        UpdateProfilePicture:
-          Type: Api
-          Properties:
-            Path: /users/{id}/profile-picture
-            Method: put
-        DeleteProfilePicture:
-          Type: Api
-          Properties:
-            Path: /users/{id}/profile-picture
-            Method: delete
-        OptionsProfilePicture:
-          Type: Api
-          Properties:
-            Path: /users/{id}/profile-picture
-            Method: options
-      Layers:
-        - !Ref DependenciesLayer
-        - !Ref AuthLayer
-
   GetAllUsersFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -450,6 +419,27 @@ Resources:
           Type: Api
           Properties:
             Path: /users/all
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  UpdatePasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: update_password.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Events:
+        UpdatePassword:
+          Type: Api
+          Properties:
+            Path: /users/{id}/password
+            Method: put
+        OptionsPassword:
+          Type: Api
+          Properties:
+            Path: /users/{id}/password
             Method: options
       Layers:
         - !Ref DependenciesLayer
@@ -512,6 +502,27 @@ Resources:
           Type: Api
           Properties:
             Path: /shifts/{id}
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  GetAllShiftsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: all_shifts.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/shift/
+      Events:
+        GetAllShifts:
+          Type: Api
+          Properties:
+            Path: /shifts/all
+            Method: get
+        OptionsGetAllShifts:
+          Type: Api
+          Properties:
+            Path: /shifts/all
             Method: options
       Layers:
         - !Ref DependenciesLayer
@@ -640,6 +651,27 @@ Resources:
             Method: options
       Layers:
         - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  UnassignShiftFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: unassign_shift.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/shift/
+      Events:
+        UnassignShift:
+          Type: Api
+          Properties:
+            Path: /shifts/unassign
+            Method: put
+        OptionsUnassignShift:
+          Type: Api
+          Properties:
+            Path: /shifts/unassign
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
         - !Ref AuthLayer  
 
   MessageFunctions:
@@ -710,6 +742,52 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
+# First, add this new API definition
+  ProfilePictureApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      BinaryMediaTypes:
+        - image/jpeg
+        - image/png
+        - '*/*'
+
+# Then modify the ProfilePictureFunctions resource
+  ProfilePictureFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: pfp.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Events:
+        GetProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: get
+            RestApiId: !Ref ProfilePictureApi
+        UpdateProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: put
+            RestApiId: !Ref ProfilePictureApi
+        DeleteProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: delete
+            RestApiId: !Ref ProfilePictureApi
+        OptionsProfilePicture:
+          Type: Api
+          Properties:
+            Path: /users/{id}/profile-picture
+            Method: options
+            RestApiId: !Ref ProfilePictureApi
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:
@@ -730,3 +808,6 @@ Outputs:
   WebSocketApi:
     Description: "API Gateway endpoint URL for Prod stage for Websockets"
     Value: !Sub "wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  ProfilePictureApi:
+    Description: "API Gateway endpoint URL for Prod stage for Profile Picture API"
+    Value: !Sub "https://${ProfilePictureApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

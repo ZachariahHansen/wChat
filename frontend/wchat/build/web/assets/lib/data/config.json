@@ -1,5 +1,6 @@
 {
     "base_url": "https://86dwgai4w9.execute-api.us-east-2.amazonaws.com/Prod",
+    "pfp_url": "https://ltcwsi4hn1.execute-api.us-east-2.amazonaws.com/Prod/",
     "websocket_url": "wss://2ju4f5ubqj.execute-api.us-east-2.amazonaws.com/Prod",
     "test": "test"
 }
