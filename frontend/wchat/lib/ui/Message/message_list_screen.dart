@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:wchat/services/webSocket/web_socket_provider.dart';
+import 'package:wchat/data/app_theme.dart';
 
 class MessageListScreen extends StatefulWidget {
   const MessageListScreen({Key? key}) : super(key: key);
@@ -14,33 +15,41 @@ class MessageListScreen extends StatefulWidget {
   _MessageListScreenState createState() => _MessageListScreenState();
 }
 
-class _MessageListScreenState extends State<MessageListScreen> {
+class _MessageListScreenState extends State<MessageListScreen> with SingleTickerProviderStateMixin {
   final MessageApi _messageApi = MessageApi();
   late WebSocketProvider _webSocketProvider;
   List<Map<String, dynamic>> _conversations = [];
   bool _isLoading = true;
   int? _currentUserId;
+  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
     _loadConversations();
     _initializeWebSocket();
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _initializeWebSocket() async {
     _webSocketProvider = Provider.of<WebSocketProvider>(context, listen: false);
-    
-    
     await _webSocketProvider.initializeWebSocket();
 
-    // Listen to WebSocket messages
     _webSocketProvider.addListener(() {
       final messages = _webSocketProvider.messages;
       for (final message in messages) {
         if (message['type'] == 'new_conversation' || 
             message['type'] == 'message_update') {
-          _loadConversations(); // Reload the conversation list
+          _loadConversations();
           break;
         }
       }
@@ -55,6 +64,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
         _conversations = conversations;
         _isLoading = false;
       });
+      _animationController.forward(from: 0);
     } catch (e) {
       print('Error loading conversations: $e');
       setState(() {
@@ -69,7 +79,11 @@ class _MessageListScreenState extends State<MessageListScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
   }
@@ -83,7 +97,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
           otherUserName: otherUserName,
         ),
       ),
-    ).then((_) => _loadConversations()); // Reload conversations when returning
+    ).then((_) => _loadConversations());
   }
 
   @override
@@ -91,6 +105,7 @@ class _MessageListScreenState extends State<MessageListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Messages'),
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -99,19 +114,31 @@ class _MessageListScreenState extends State<MessageListScreen> {
         ],
       ),
       drawer: const AppDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadConversations,
-              child: _conversations.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      itemCount: _conversations.length,
-                      itemBuilder: (context, index) {
-                        return _buildConversationTile(_conversations[index]);
-                      },
-                    ),
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary.withOpacity(0.05),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _loadConversations,
+                color: AppColors.primary,
+                child: _conversations.isEmpty
+                    ? _buildEmptyState()
+                    : _buildConversationsList(),
+              ),
+      ),
     );
   }
 
@@ -122,25 +149,64 @@ class _MessageListScreenState extends State<MessageListScreen> {
         children: [
           Icon(
             Icons.message_outlined,
-            size: 64,
-            color: Colors.grey[400],
+            size: 80,
+            color: AppColors.primary.withOpacity(0.5),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             'No conversations yet',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.grey[600],
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             'Your messages will appear here',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[500],
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.textSecondary,
                 ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            onPressed: _loadConversations,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Refresh'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildConversationsList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _conversations.length,
+      itemBuilder: (context, index) {
+        final animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Interval(
+              (index / _conversations.length),
+              ((index + 1) / _conversations.length),
+              curve: Curves.easeOut,
+            ),
+          ),
+        );
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.5, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: _buildConversationTile(_conversations[index]),
+          ),
+        );
+      },
     );
   }
 
@@ -152,41 +218,80 @@ class _MessageListScreenState extends State<MessageListScreen> {
     final lastMessageTime = DateTime.parse(conversation['last_message_time']);
     final fullName = '$firstName $lastName';
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).primaryColor,
-          child: Text(
-            firstName[0].toUpperCase(),
-            style: const TextStyle(color: Colors.white),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Card(
+        elevation: 2,
+        shadowColor: AppColors.primary.withOpacity(0.2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: AppColors.primary.withOpacity(0.1),
+            width: 1,
           ),
         ),
-        title: Text(
-          fullName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        subtitle: Text(
-          lastMessage,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              _formatMessageTime(lastMessageTime),
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
+        child: InkWell(
+          onTap: () => _navigateToConversation(otherUserId, fullName),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: AppColors.primary,
+                  child: Text(
+                    firstName[0].toUpperCase(),
+                    style: const TextStyle(
+                      color: AppColors.textLight,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            fullName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            _formatMessageTime(lastMessageTime),
+                            style: TextStyle(
+                              color: AppColors.textSecondary.withOpacity(0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        lastMessage,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-        onTap: () => _navigateToConversation(otherUserId, fullName),
       ),
     );
   }
@@ -198,69 +303,13 @@ class _MessageListScreenState extends State<MessageListScreen> {
     if (difference.inDays > 7) {
       return DateFormat('MMM d').format(messageTime);
     } else if (difference.inDays > 0) {
-      return DateFormat('E').format(messageTime); // Day name
+      return DateFormat('E').format(messageTime);
     } else if (difference.inHours > 0) {
       return '${difference.inHours}h ago';
     } else if (difference.inMinutes > 0) {
       return '${difference.inMinutes}m ago';
     } else {
       return 'Just now';
-    }
-  }
-}
-
-// Message preview card widget for better organization
-class MessagePreviewCard extends StatelessWidget {
-  final String userName;
-  final String lastMessage;
-  final DateTime lastMessageTime;
-  final VoidCallback onTap;
-
-  const MessagePreviewCard({
-    Key? key,
-    required this.userName,
-    required this.lastMessage,
-    required this.lastMessageTime,
-    required this.onTap,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        title: Text(
-          userName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          lastMessage,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Text(
-          _formatTime(lastMessageTime),
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
-        ),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(time.year, time.month, time.day);
-
-    if (messageDate == today) {
-      return DateFormat('HH:mm').format(time);
-    } else if (messageDate.isAfter(today.subtract(const Duration(days: 7)))) {
-      return DateFormat('E').format(time); // Day name
-    } else {
-      return DateFormat('MMM d').format(time);
     }
   }
 }

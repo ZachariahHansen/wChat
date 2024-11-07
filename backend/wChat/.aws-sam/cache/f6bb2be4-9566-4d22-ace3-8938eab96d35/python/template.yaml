@@ -5,17 +5,6 @@ Description: >
 
   Sample SAM Template for wChat
 
-# Parameters:
-  # ExampleApiKey:
-  #   Type: String
-  #   Description: API Key for the example API
-  #   Default: '123456789012345678901234567890'
-  #   MinLength: 20
-  #   MaxLength: 40
-  #   AllowedPattern: '[a-zA-Z0-9]+'
-  #   ConstraintDescription: must be a string of 20 to 40 alphanumeric characters.
-
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 10
@@ -30,15 +19,15 @@ Globals:
         WEBSOCKET_API_DOMAIN: 
           Fn::Sub: "${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com"
         WEBSOCKET_API_STAGE: Prod
+        MY_AWS_REGION: !Ref "AWS::Region"
+        SENDER_EMAIL: zachariahjhansen@gmail.com
         AuthorizerResultTtlInSeconds: 0  # This disables caching
+        # EMAIL_FUNCTION_NAME: !Ref EmailFunction
     MemorySize: 128
-    
-
-    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
-Resources:
 
+Resources:
   # Layers
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
@@ -185,6 +174,30 @@ Resources:
 
 
 # FUNCTIONS
+
+  EmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: email_service.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/_email/
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - 'ses:SendEmail'
+                - 'ses:SendRawEmail'
+                - 'ses:VerifyEmailIdentity'  
+                - 'ses:GetIdentityVerificationAttributes'  
+              Resource: '*'
+      Environment:
+        Variables:
+          MY_AWS_REGION: !Ref "AWS::Region"
+          SENDER_EMAIL: zachariahjhansen@gmail.com
+          APP_URL: https://zachariahhansen.com/
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
 
   DepartmentFunctions:
     Type: AWS::Serverless::Function
@@ -399,6 +412,22 @@ Resources:
           Properties:
             Path: /users/{id}
             Method: options
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - 'lambda:InvokeFunction'
+              Resource: !GetAtt EmailFunction.Arn
+            - Effect: Allow
+              Action:
+                - 'logs:CreateLogGroup'
+                - 'logs:CreateLogStream'
+                - 'logs:PutLogEvents'
+              Resource: '*'
+      Environment:
+        Variables:
+          EMAIL_FUNCTION_NAME: !Ref EmailFunction
+          LAMBDA_REGION: !Ref "AWS::Region"  # Add this to ensure boto3 client uses correct region
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer

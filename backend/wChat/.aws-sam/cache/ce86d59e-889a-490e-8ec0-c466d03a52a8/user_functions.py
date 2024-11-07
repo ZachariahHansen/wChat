@@ -4,12 +4,15 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import bcrypt
 from functions.auth_layer.auth import authenticate
+import boto3
+import jwt
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
 # DB_NAME = os.environ['DB_NAME']
 DB_USER = os.environ['POSTGRES_USER']
 DB_PASSWORD = os.environ['POSTGRES_PASSWORD']
+JWT_SECRET = os.environ['JWT_SECRET']
 
 def get_db_connection():
     return psycopg2.connect(
@@ -72,7 +75,9 @@ def create_user(event, cur):
     if not all(field in user_data for field in required_fields):
         return response(400, {'error': 'Missing required fields'})
     
-    password_hash = bcrypt.hashpw(user_data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    # Store plain password for email
+    temp_password = user_data['password']
+    password_hash = bcrypt.hashpw(temp_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     #check if the role exists
     cur.execute("SELECT * FROM role WHERE id = %s", (user_data['role_id'],))
@@ -83,14 +88,38 @@ def create_user(event, cur):
     cur.execute("""
     INSERT INTO "user" (first_name, last_name, email, phone_number, hourly_rate, role_id, is_manager, password)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    RETURNING id
+    RETURNING id, first_name, last_name, email
 """, (user_data['first_name'], user_data['last_name'], user_data['email'], user_data['phone_number'], 
       user_data['hourly_rate'], user_data['role_id'], user_data['is_manager'], password_hash))
     
-    new_user_id = cur.fetchone()['id']
+    new_user = cur.fetchone()
     cur.connection.commit()
+
+    # Send welcome email with temporary password
+    try:
+        lambda_client = boto3.client('lambda')
+        email_payload = {
+            'httpMethod': 'POST',
+            'body': json.dumps({
+                'template_type': 'new_user',
+                'recipient_id': new_user['id'],
+                'template_data': {
+                    'user_name': f"{new_user['first_name']} {new_user['last_name']}",
+                    'temp_password': temp_password
+                }
+            })
+        }
+        
+        lambda_client.invoke(
+            FunctionName=os.environ['EMAIL_FUNCTION_NAME'],
+            InvocationType='Event',
+            Payload=json.dumps(email_payload)
+        )
+    except Exception as e:
+        print(f"Error sending welcome email: {str(e)}")
+        # Continue with user creation even if email fails
     
-    return response(201, {'id': new_user_id})
+    return response(201, {'id': new_user['id']})
 
 @authenticate
 def update_user(event, cur):
@@ -195,7 +224,7 @@ def delete_user(event, cur):
     else:
         return response(404, {'error': 'User not found'})
 
-def response(status_code, body):
+def     response(status_code, body):
     return {
         'statusCode': status_code,
         'headers': {

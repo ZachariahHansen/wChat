@@ -17,7 +17,6 @@ def get_db_connection():
         password=DB_PASSWORD
     )
 
-# Custom JSON encoder to handle datetime objects
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (datetime, date)):
@@ -68,5 +67,5 @@ def response(status_code, body):
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
             'Access-Control-Allow-Methods': 'OPTIONS,GET'
         },
-        'body': json.dumps(body, cls=DateTimeEncoder)  # Use the custom encoder here
+        'body': json.dumps(body, cls=DateTimeEncoder)  
     }

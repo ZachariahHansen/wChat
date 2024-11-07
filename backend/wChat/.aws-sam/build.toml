@@ -26,7 +26,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "18e2eb6665e5e86f6968d315fa4f3feef8bbbc77eeb5557ea6c543c66aaed998"
+source_hash = "139a16dcde6382808de0222a605b082a25ccfe9df71caec3a68e752e1235fc03"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "LoginFunctions", "ProfilePictureFunctions"]
@@ -36,7 +36,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "97ecc974eaf7f57baec883d35952d3cf73820428a56e5f743c3a41434f0fae66"
+source_hash = "ab628433b86af46f15bdcd60243e35885a63917b0058b9849b95d59de02177ea"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["ShiftFunctions", "GetAllShiftsFunction", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "ShiftExchangeFunction", "AssignShiftFunction", "UnassignShiftFunction"]
@@ -61,6 +61,16 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["OnConnectFunction", "OnDisconnectFunction", "BroadcastFunction"]
 
+[function_build_definitions.941de649-3797-4580-a21a-7d740fdaea09]
+codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\_email"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "email_service.lambda_handler"
+source_hash = "9fba97a7ef5d6dd201a7a57235260f922500dc28be59d7d57e628952d2b3374a"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["EmailFunction"]
+
 [layer_build_definitions]
 [layer_build_definitions.f6bb2be4-9566-4d22-ace3-8938eab96d35]
 layer_name = "DependenciesLayer"
@@ -68,7 +78,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "326aa10cc2d015fe9cd7e81aa4c46ae564c0ac5db889ed0a77d513d11c195351"
+source_hash = "6a04f4d3f63d24a63ae890fb5f2eaf768e4b9251c75ff76575b305bf7037f12e"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
