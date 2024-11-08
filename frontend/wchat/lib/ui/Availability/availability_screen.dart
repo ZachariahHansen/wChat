@@ -4,6 +4,7 @@ import 'package:wchat/services/api/availability_api.dart';
 import 'package:flutter/services.dart';
 import 'package:wchat/services/storage/jwt_decoder.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
+import 'package:wchat/ui/Availability/time_off_widget.dart';
 
 class AvailabilityForm extends StatefulWidget {
   const AvailabilityForm({Key? key}) : super(key: key);
@@ -147,14 +148,27 @@ class _AvailabilityFormState extends State<AvailabilityForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Set Your Availability'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _isLoading ? null : _saveAvailability,
-          ),
-        ],
-      ),
+  title: const Text('Set Your Availability'),
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.calendar_month),
+      onPressed: () async {
+        final result = await showDialog(
+          context: context,
+          builder: (context) => const TimeOffRequestDialog(),
+        );
+        if (result == true) {
+          // Optionally refresh the availability view if needed
+          _loadAvailability();
+        }
+      },
+    ),
+    IconButton(
+      icon: const Icon(Icons.save),
+      onPressed: _isLoading ? null : _saveAvailability,
+    ),
+  ],
+),
       drawer: const AppDrawer(),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

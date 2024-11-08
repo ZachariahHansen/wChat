@@ -4,7 +4,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
 
-# Database connection parameters remain the same
+# Database connection parameters
 DB_HOST = os.environ['DB_HOST']
 DB_USER = os.environ['POSTGRES_USER']
 DB_PASSWORD = os.environ['POSTGRES_PASSWORD']
@@ -27,10 +27,8 @@ def lambda_handler(event, context):
             
             if http_method == 'GET':
                 return get_availability(event, cur)
-            elif http_method == 'POST':
-                return create_availability(event, cur)
-            elif http_method == 'PUT':
-                return update_availability(event, cur)
+            elif http_method in ['POST', 'PUT']:  # Handle both POST and PUT the same way
+                return upsert_availability(event, cur)
             elif http_method == 'DELETE':
                 return delete_availability(event, cur)
             else:
@@ -71,7 +69,8 @@ def validate_availability_data(availability):
     return True, ""
 
 @authenticate
-def create_availability(event, cur):
+def upsert_availability(event, cur):
+    """Create or update availability records"""
     try:
         user_id = event['pathParameters']['id']
         body = json.loads(event['body'])
@@ -112,19 +111,11 @@ def create_availability(event, cur):
             ))
         
         cur.connection.commit()
-        return response(201, {'message': 'Availability created successfully'})
+        return response(201 if event['httpMethod'] == 'POST' else 200, 
+                       {'message': 'Availability updated successfully'})
         
     except Exception as e:
         cur.connection.rollback()
-        print(f"Error creating availability: {str(e)}")
-        return response(500, {'error': 'Internal server error'})
-
-@authenticate
-def update_availability(event, cur):
-    try:
-        # Update is identical to create in this case
-        return create_availability(event, cur)
-    except Exception as e:
         print(f"Error updating availability: {str(e)}")
         return response(500, {'error': 'Internal server error'})
 
@@ -144,7 +135,6 @@ def get_availability(event, cur):
     availabilities = cur.fetchall()
     return response(200, {'availabilities': availabilities})
 
-# Delete function remains the same
 @authenticate
 def delete_availability(event, cur):
     try:

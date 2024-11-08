@@ -47,7 +47,7 @@ class AvailabilityApi {
       } else if (response.statusCode == 404) {
         return null;
       }
-      
+
       throw Exception('Failed to load availability: ${response.statusCode}');
     } catch (e) {
       print('Error fetching availability: $e');
@@ -56,7 +56,8 @@ class AvailabilityApi {
   }
 
   // Create or update availability
-  Future<bool> upsertAvailability(int userId, List<Map<String, dynamic>> availabilities) async {
+  Future<bool> upsertAvailability(
+      int userId, List<Map<String, dynamic>> availabilities) async {
     try {
       if (baseUrl == null) {
         await _loadUrl();
@@ -67,9 +68,7 @@ class AvailabilityApi {
         throw Exception('No authentication token found');
       }
 
-      final requestBody = {
-        'availabilities': availabilities
-      };
+      final requestBody = {'availabilities': availabilities};
 
       final response = await http.put(
         Uri.parse('$baseUrl/availability/$userId'),
@@ -145,14 +144,13 @@ class AvailabilityApi {
     try {
       final parts = time.split(':');
       if (parts.length != 2) return false;
-      
+
       final hours = int.parse(parts[0]);
       final minutes = int.parse(parts[1]);
-      
+
       return hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60;
     } catch (e) {
       return false;
     }
   }
-
 }

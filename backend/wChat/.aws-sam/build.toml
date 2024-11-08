@@ -76,10 +76,10 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "availability_functions.lambda_handler"
-source_hash = "f0dee9493e9c6ea0160619c25fe0d54e1a461aeb7d997c4983550d1d1b7fee6b"
+source_hash = "67d9fa3ea2663721365e58295a5bc1fa938aa9df5d1c64921d17240d1e7b3dfb"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["AvailabilityFunction"]
+functions = ["AvailabilityFunction", "TimeOffFunctions"]
 
 [layer_build_definitions]
 [layer_build_definitions.f6bb2be4-9566-4d22-ace3-8938eab96d35]
@@ -88,7 +88,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "e782f168b4bb3c69b44dd8ce9cfa01c3261401170f9bd9d64d2370631aa5d8ad"
+source_hash = "2b1ca1fdb78a80dabf798dc0602eb2004901f6ca50c579b5b1942c86723f6788"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
