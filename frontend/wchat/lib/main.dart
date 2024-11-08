@@ -14,6 +14,7 @@ import 'package:wchat/ui/Manager/Roles/roles_screen.dart';
 import 'package:wchat/ui/Manager/User/users_screen.dart';
 import 'package:wchat/ui/Profile/edit_profile_screen.dart';
 import 'package:wchat/ui/Manager/Shift/shifts_screen.dart';
+import 'package:wchat/ui/Availability/availability_screen.dart';
 
 void main() {
   runApp(
@@ -50,8 +51,7 @@ class MyApp extends StatelessWidget {
         '/manager/roles': (context) => const RoleScreen(),
         '/manager/users': (context) => const UserManagementScreen(),
         '/manager/shifts': (context) => const ShiftsScreen(),
-
-        
+        '/availability': (context) => const AvailabilityForm(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/profile') {
@@ -68,7 +68,6 @@ class MyApp extends StatelessWidget {
         }
         return null;
       },
-      
     );
   }
 }

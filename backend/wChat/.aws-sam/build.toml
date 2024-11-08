@@ -66,10 +66,20 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "email_service.lambda_handler"
-source_hash = "9fba97a7ef5d6dd201a7a57235260f922500dc28be59d7d57e628952d2b3374a"
+source_hash = "8b6d4af8bc311a0cc0d2206785a59614bda3c063e72ff401baeccad19649d26d"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["EmailFunction"]
+
+[function_build_definitions.070b54de-531a-4934-82b0-1beba2cd9619]
+codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\availability"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "availability_functions.lambda_handler"
+source_hash = "f0dee9493e9c6ea0160619c25fe0d54e1a461aeb7d997c4983550d1d1b7fee6b"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AvailabilityFunction"]
 
 [layer_build_definitions]
 [layer_build_definitions.f6bb2be4-9566-4d22-ace3-8938eab96d35]
@@ -78,7 +88,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "6a04f4d3f63d24a63ae890fb5f2eaf768e4b9251c75ff76575b305bf7037f12e"
+source_hash = "e782f168b4bb3c69b44dd8ce9cfa01c3261401170f9bd9d64d2370631aa5d8ad"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

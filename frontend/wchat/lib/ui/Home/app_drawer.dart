@@ -19,7 +19,7 @@ class AppDrawer extends StatelessWidget {
                     context,
                     icon: Icons.home_outlined,
                     title: 'Home',
-                    onTap: () => Navigator.pushReplacementNamed(context, '/'),
+                    onTap: () => Navigator.pushReplacementNamed(context, '/home'),
                   ),
                   _buildDrawerItem(
                     context,
@@ -41,9 +41,9 @@ class AppDrawer extends StatelessWidget {
                   ),
                   _buildDrawerItem(
                     context,
-                    icon: Icons.settings_outlined,
-                    title: 'Settings',
-                    onTap: () => Navigator.pushReplacementNamed(context, '/settings'),
+                    icon: Icons.event_available_outlined,
+                    title: 'Availability',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/availability'),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),

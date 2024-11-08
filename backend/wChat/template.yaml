@@ -199,6 +199,86 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
+  AvailabilityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: availability_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/availability/
+      Events:
+        GetAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: get
+        CreateAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: post
+        UpdateAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: put
+        DeleteAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: delete
+        OptionsAvailabilityId:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
+  TimeOffFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: time_off_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/availability/
+      Events:
+        GetAllTimeOff:
+          Type: Api
+          Properties:
+            Path: /time-off
+            Method: get
+        OptionsTimeOff:
+          Type: Api
+          Properties:
+            Path: /time-off
+            Method: options
+        GetTimeOff:
+          Type: Api
+          Properties:
+            Path: /time-off/{id}
+            Method: get
+        CreateTimeOff:
+          Type: Api
+          Properties:
+            Path: /time-off/{id}
+            Method: post
+        UpdateTimeOff:
+          Type: Api
+          Properties:
+            Path: /time-off/{id}
+            Method: put
+        DeleteTimeOff:
+          Type: Api
+          Properties:
+            Path: /time-off/{id}
+            Method: delete
+        OptionsTimeOffId:
+          Type: Api
+          Properties:
+            Path: /time-off/{id}
+            Method: options
+      Layers:
+
   DepartmentFunctions:
     Type: AWS::Serverless::Function
     Properties:

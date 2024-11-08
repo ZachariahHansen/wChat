@@ -6,6 +6,7 @@ import 'package:wchat/services/api/pfp_api.dart';
 import 'package:wchat/ui/Message/conversation_screen.dart';
 import 'package:wchat/data/app_theme.dart';
 import 'package:wchat/services/storage/jwt_decoder.dart';
+import 'package:wchat/services/api/availability_api.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int userId;
@@ -22,6 +23,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserApi _userApi = UserApi();
   final ProfilePictureApi _pfpApi = ProfilePictureApi();
+  final AvailabilityApi _availabilityApi = AvailabilityApi();
+  List<Map<String, dynamic>>? _availability;
+  bool _isLoadingAvailability = false;
 
   Future<User>? _userFuture;
   Uint8List? _profilePicture;
@@ -38,6 +42,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await _checkIfCurrentUser();
     _userFuture = _fetchUserProfile();
     await _loadProfilePicture();
+    await _loadAvailability();
+  }
+
+   Future<void> _loadAvailability() async {
+    if (mounted) {
+      setState(() => _isLoadingAvailability = true);
+    }
+
+    try {
+      final availability = await _availabilityApi.getAvailability(widget.userId);
+      if (mounted) {
+        setState(() {
+          _availability = availability;
+        });
+      }
+    } catch (e) {
+      print('Error loading availability: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingAvailability = false);
+      }
+    }
   }
 
   Future<void> _checkIfCurrentUser() async {
@@ -102,6 +128,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _userFuture = _fetchUserProfile();
     });
     await _loadProfilePicture();
+    await _loadAvailability();
+  }
+
+  Widget _buildAvailabilitySection() {
+    final daysOfWeek = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday'
+    ];
+
+    if (_isLoadingAvailability) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_availability == null || _availability!.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          'No availability set',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 16,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: _availability!.map((day) {
+        final dayIndex = day['day'] as int;
+        final isAvailable = day['is_available'] as bool;
+
+        if (!isAvailable) {
+          return ListTile(
+            leading: Icon(Icons.block, color: AppColors.error.withOpacity(0.7)),
+            title: Text(
+              daysOfWeek[dayIndex],
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            subtitle: const Text('Not Available'),
+          );
+        }
+
+        return ListTile(
+          leading: Icon(Icons.schedule, color: AppColors.secondary),
+          title: Text(
+            daysOfWeek[dayIndex],
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(
+            '${day['start_time']} - ${day['end_time']}',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -277,8 +377,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildDepartmentsList(user.departments),
             ],
           ),
+          const SizedBox(height: 16),
+          _buildSection(
+            'Weekly Availability',
+            [_buildAvailabilitySection()],
+          ),
           const SizedBox(height: 24),
-          if (_isCurrentUser)
+          if (_isCurrentUser) ...[
             ElevatedButton.icon(
               onPressed: _navigateToEditProfile,
               icon: const Icon(Icons.edit),
@@ -287,8 +392,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 backgroundColor: AppColors.secondary,
                 padding: const EdgeInsets.all(16),
               ),
-            )
-          else
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/availability')
+                    .then((_) => _loadAvailability());
+              },
+              icon: const Icon(Icons.event_available),
+              label: const Text('Edit Availability'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.all(16),
+              ),
+            ),
+          ] else
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(

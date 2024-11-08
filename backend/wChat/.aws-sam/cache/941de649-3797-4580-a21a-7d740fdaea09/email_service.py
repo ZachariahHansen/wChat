@@ -42,11 +42,6 @@ class EmailTemplate:
             Please log into WorkChat using the following temporary password:
             {temp_password}
 
-            IMPORTANT SECURITY INFORMATION:
-            - This temporary password will expire in 24 hours
-            - You will be required to change your password upon first login
-            - Your new password must meet our security requirements
-
             You can log in at: {os.environ.get('APP_URL', '[WorkChat URL]')}
 
             If you did not request this account, please contact your administrator 

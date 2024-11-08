@@ -199,6 +199,42 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
+  AvailabilityFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: availability_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/availability/
+      Events:
+        GetAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: get
+        CreateAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: post
+        UpdateAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: put
+        DeleteAvailability:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: delete
+        OptionsAvailabilityId:
+          Type: Api
+          Properties:
+            Path: /availability/{id}
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
   DepartmentFunctions:
     Type: AWS::Serverless::Function
     Properties:
