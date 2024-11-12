@@ -23,9 +23,21 @@ Globals:
         SENDER_EMAIL: zachariahjhansen@gmail.com
         AuthorizerResultTtlInSeconds: 0  # This disables caching
         # EMAIL_FUNCTION_NAME: !Ref EmailFunction
+        OPENAI_API_KEY: !Sub '{{resolve:secretsmanager:/wChat/${ENV}/OPENAI_API_KEY:SecretString}}'
+        # FINE_TUNED_MODEL_ID: !Sub '{{resolve:ssm:/wChat/${ENV}/FINE_TUNED_MODEL_ID}}'
+        ENV: !Ref ENV
     MemorySize: 128
     LoggingConfig:
       LogFormat: JSON
+
+Parameters:
+  ENV:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: The environment for the application
 
 Resources:
   # Layers
@@ -40,12 +52,59 @@ Resources:
     Metadata:
       BuildMethod: python3.12
 
+  OpenAILayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: openai-layer
+      Description: Layer for the OpenAI API
+      ContentUri: ./
+      CompatibleRuntimes:
+        - python3.12
+    Metadata:
+      BuildMethod: python3.12
+    Parameters:
+      ENV:
+        Type: String
+        Description: The environment for the OpenAI Layer
+        Default: dev
+    Policies:
+      - PolicyName: SecretsAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/wChat/${ENV}/*'
+      - PolicyName: SSMAccess
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:GetParametersByPath
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/wChat/${ENV}/*'
+
   AuthLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: auth-layer
       Description: Layer for the Authentication
       ContentUri: functions/auth_layer/
+      CompatibleRuntimes:
+        - python3.12
+    Metadata:
+      BuildMethod: python3.12
+
+  NotificationLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: notification-layer
+      Description: Layer for Notification Service
+      ContentUri: functions/notifications/  
       CompatibleRuntimes:
         - python3.12
     Metadata:
@@ -172,8 +231,52 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
 
+# AI
+
+  OpenAiHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: openai_handler.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/_ai/
+
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref OpenAILayer
 
 # FUNCTIONS
+
+  NotificationsFunctions:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: notification_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/notifications/
+      Events:
+        GetNotifications:
+          Type: Api
+          Properties:
+            Path: /notifications
+            Method: get
+        MarkNotificationsRead:
+          Type: Api
+          Properties:
+            Path: /notifications/read
+            Method: put
+        OptionsNotifications:
+          Type: Api
+          Properties:
+            Path: /notifications
+            Method: options
+        OptionsNotificationsRead:
+          Type: Api
+          Properties:
+            Path: /notifications/read
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+        - !Ref NotificationLayer
 
   EmailFunction:
     Type: AWS::Serverless::Function
@@ -280,6 +383,7 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+        - !Ref NotificationLayer
 
   DepartmentFunctions:
     Type: AWS::Serverless::Function
@@ -373,6 +477,7 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+        - !Ref NotificationLayer
 
   RoleFunctions:
     Type: AWS::Serverless::Function
@@ -456,6 +561,7 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+        - !Ref NotificationLayer
 
   UserFunctions:
     Type: AWS::Serverless::Function
@@ -617,6 +723,7 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+        - !Ref NotificationLayer
 
   GetAllShiftsFunction:
     Type: AWS::Serverless::Function
@@ -742,6 +849,7 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+        - !Ref NotificationLayer
 
   AssignShiftFunction:
     Type: AWS::Serverless::Function
@@ -784,6 +892,7 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer  
+        - !Ref NotificationLayer
 
   MessageFunctions:
     Type: AWS::Serverless::Function

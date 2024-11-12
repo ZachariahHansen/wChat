@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
 from datetime import datetime, date
+from functions.notifications.python.notification_service import NotificationService
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -120,6 +121,14 @@ def create_time_off_request(event, cur):
         return response(400, {'error': f'Invalid request type. Must be one of: {", ".join(valid_types)}'})
     
     try:
+        # Get user name for notification
+        cur.execute("""
+            SELECT first_name || ' ' || last_name as full_name
+            FROM "user"
+            WHERE id = %s
+        """, (request_data['user_id'],))
+        user = cur.fetchone()
+        
         cur.execute("""
             INSERT INTO time_off_request 
             (user_id, start_date, end_date, request_type, reason, notes)
@@ -136,6 +145,18 @@ def create_time_off_request(event, cur):
         
         new_request_id = cur.fetchone()['id']
         cur.connection.commit()
+        
+        # Send notification to managers
+        notification_service = NotificationService()
+        start_date = datetime.strptime(request_data['start_date'], '%Y-%m-%d').strftime('%B %d, %Y')
+        end_date = datetime.strptime(request_data['end_date'], '%Y-%m-%d').strftime('%B %d, %Y')
+        
+        if start_date == end_date:
+            notification_content = f"New time off request from {user['full_name']} ({start_date})"
+        else:
+            notification_content = f"New time off request from {user['full_name']} ({start_date} to {end_date})"
+        
+        notification_service.notify_managers(notification_content)
         
         return response(201, {'id': new_request_id})
         
@@ -173,6 +194,15 @@ def update_time_off_request(event, cur):
     update_values.append(request_id)
     
     try:
+        # Get request details for notification
+        cur.execute("""
+            SELECT tor.*, u.id as user_id
+            FROM time_off_request tor
+            JOIN "user" u ON tor.user_id = u.id
+            WHERE tor.id = %s
+        """, (request_id,))
+        request = cur.fetchone()
+        
         cur.execute(f"""
             UPDATE time_off_request
             SET {', '.join(update_fields)}
@@ -183,7 +213,21 @@ def update_time_off_request(event, cur):
         updated_request = cur.fetchone()
         cur.connection.commit()
         
-        if updated_request:
+        if updated_request and 'status' in request_data:
+            # Send notification to the requesting user
+            notification_service = NotificationService()
+            start_date = request['start_date'].strftime('%B %d, %Y')
+            end_date = request['end_date'].strftime('%B %d, %Y')
+            
+            if start_date == end_date:
+                notification_content = f"Your time off request for {start_date} has been {request_data['status']}"
+            else:
+                notification_content = f"Your time off request for {start_date} to {end_date} has been {request_data['status']}"
+            
+            notification_service.create_notification(request['user_id'], notification_content)
+            
+            return response(200, {'message': 'Time off request updated successfully'})
+        elif updated_request:
             return response(200, {'message': 'Time off request updated successfully'})
         else:
             return response(404, {'error': 'Time off request not found'})

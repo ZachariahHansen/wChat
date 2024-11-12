@@ -84,10 +84,21 @@ def get_profile_picture(event, cur):
 def update_profile_picture(event, cur):
     try:
         user_id = event['pathParameters']['id']
-        content_type = event.get('headers', {}).get('Content-Type', '')
         
-        print("Headers:", event.get('headers', {}))
-        print("Content-Type:", content_type)
+        # More robust content type checking
+        headers = event.get('headers', {})
+        # Convert all header keys to lowercase for case-insensitive comparison
+        headers = {k.lower(): v for k, v in headers.items()}
+        
+        # Try multiple possible header keys
+        content_type = (
+            headers.get('content-type') or 
+            headers.get('x-content-type') or 
+            ''
+        )
+        
+        print("All headers:", headers)  # Debug print
+        print("Found content-type:", content_type)  # Debug print
         print("Is base64 encoded:", event.get('isBase64Encoded', False))
         
         # Validate content type

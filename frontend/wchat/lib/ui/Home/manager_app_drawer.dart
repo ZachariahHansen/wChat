@@ -51,6 +51,12 @@ class ManagerDrawer extends StatelessWidget {
                     title: 'Time Off Requests',
                     onTap: () => Navigator.pushReplacementNamed(context, '/manager/time_off'),
                   ),
+                  _buildDrawerItem(
+                    context,
+                    icon: Icons.auto_awesome_outlined,
+                    title: 'Generate Shifts (AI)',
+                    onTap: () => Navigator.pushReplacementNamed(context, '/manager/generate_shifts'),
+                  ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Divider(height: 1),

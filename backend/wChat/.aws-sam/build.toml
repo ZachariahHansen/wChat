@@ -6,7 +6,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "department_functions.lambda_handler"
-source_hash = "21c795bd0c3e88380610e1e7af3a52a1e7872245b946dd2dca4447f8c47083d2"
+source_hash = "f9b04eb777696e72f4a5dc3849cb292c2f758a8c3cc6679dc62ccacf90a0345b"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["DepartmentFunctions", "AllDepartmentsFunction", "AssignDepartmentFunction"]
@@ -26,7 +26,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "139a16dcde6382808de0222a605b082a25ccfe9df71caec3a68e752e1235fc03"
+source_hash = "d21e7b5abaa7228f2d51104ab075985c41f0e668c544ae325ff26cbedab1eb17"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "LoginFunctions", "ProfilePictureFunctions"]
@@ -36,7 +36,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "shift_functions.lambda_handler"
-source_hash = "ab628433b86af46f15bdcd60243e35885a63917b0058b9849b95d59de02177ea"
+source_hash = "ba0eef555390ee294d2f697d2a3782c32989835a08887193899eb13159acc57b"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["ShiftFunctions", "GetAllShiftsFunction", "ShiftsUserFunctions", "ShiftsDepartmentFunctions", "NextShiftFunction", "ShiftExchangeFunction", "AssignShiftFunction", "UnassignShiftFunction"]
@@ -76,10 +76,30 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "availability_functions.lambda_handler"
-source_hash = "67d9fa3ea2663721365e58295a5bc1fa938aa9df5d1c64921d17240d1e7b3dfb"
+source_hash = "a7baf4bde9e3204f311c8a4890416da44bd1e35cd9a4475aa32b820e3bb9d873"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["AvailabilityFunction", "TimeOffFunctions"]
+
+[function_build_definitions.453efb9c-feb0-40d7-b7cf-e6b748422b3d]
+codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\_ai"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "openai_handler.lambda_handler"
+source_hash = "78de8722e164833694f095fa5c5fcbfc272a28d912ee39d8aaf2187f8e3c91e9"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["OpenAiHandler"]
+
+[function_build_definitions.51faa033-ed96-4fe0-a84a-8496a8de9102]
+codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\notifications"
+runtime = "python3.12"
+architecture = "x86_64"
+handler = "notification_functions.lambda_handler"
+source_hash = "0ffd8bfc0c2f14c61edd60f2d9e9823b25f92c75bf9c73715ff43c12135a93d4"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["NotificationsFunctions"]
 
 [layer_build_definitions]
 [layer_build_definitions.f6bb2be4-9566-4d22-ace3-8938eab96d35]
@@ -88,7 +108,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "2b1ca1fdb78a80dabf798dc0602eb2004901f6ca50c579b5b1942c86723f6788"
+source_hash = "130c5339160fdb228cb9f9657b3bdfd6e3025f680cfefc3ecbe61c86ae5c6d9b"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
@@ -101,3 +121,23 @@ architecture = "x86_64"
 source_hash = "ad729ffb4f15fddb0912803c3238f56f583ed76b5fd38a68a34cebe85c93ba47"
 manifest_hash = ""
 layer = "AuthLayer"
+
+[layer_build_definitions.487ec8b8-08eb-42f7-a419-4ec6531a82b3]
+layer_name = "OpenAILayer"
+codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat"
+build_method = "python3.12"
+compatible_runtimes = ["python3.12"]
+architecture = "x86_64"
+source_hash = "130c5339160fdb228cb9f9657b3bdfd6e3025f680cfefc3ecbe61c86ae5c6d9b"
+manifest_hash = ""
+layer = "OpenAILayer"
+
+[layer_build_definitions.c2e26690-5647-46df-a4f8-b9031faa19be]
+layer_name = "NotificationLayer"
+codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\notifications"
+build_method = "python3.12"
+compatible_runtimes = ["python3.12"]
+architecture = "x86_64"
+source_hash = "0ffd8bfc0c2f14c61edd60f2d9e9823b25f92c75bf9c73715ff43c12135a93d4"
+manifest_hash = ""
+layer = "NotificationLayer"

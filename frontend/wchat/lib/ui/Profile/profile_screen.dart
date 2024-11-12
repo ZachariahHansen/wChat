@@ -373,6 +373,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 '\$${user.hourlyRate.toStringAsFixed(2)}',
               ),
               _buildInfoRow(Icons.work, 'Role', user.role),
+              _buildInfoRow(
+                Icons.access_time,
+                'Employment Type',
+                user.fullTime ? 'Full Time' : 'Part Time',
+              ),
               if (user.departments.isNotEmpty)
                 _buildDepartmentsList(user.departments),
             ],

@@ -8,6 +8,7 @@ class User {
   final List<String> departments;
   final bool isManager;
   final double hourlyRate;
+  final bool fullTime;
 
   User({
     required this.id,
@@ -19,6 +20,7 @@ class User {
     required this.hourlyRate,
     required this.departments,
     required this.isManager,
+    required this.fullTime,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class User {
       departments: parseDepartments(json['departments']),
       hourlyRate: json['hourly_rate'].toDouble(),
       isManager: json['is_manager'],
+      fullTime: json['full_time'] ?? true, // Default to true if not provided
     );
   }
 }

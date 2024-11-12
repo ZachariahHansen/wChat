@@ -100,6 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
     case 'settings':
       Navigator.pushNamed(context, '/settings');
       break;
+    case 'logout':
+      Navigator.pushReplacementNamed(context, '/login');
+      break;
   }
 }
 
@@ -148,6 +151,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     leading: const Icon(Icons.settings_outlined),
                     title: Text(
                       'Settings',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: ListTile(
+                    leading: const Icon(Icons.logout_outlined),
+                    title: Text(
+                      'Logout',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     contentPadding: EdgeInsets.zero,

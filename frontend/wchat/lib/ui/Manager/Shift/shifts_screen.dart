@@ -406,6 +406,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                             role: '',
                             isManager: false,
                             departments: [],
+                            fullTime: true, // Default value for unassigned user
                           ),
                         );
 
@@ -448,7 +449,6 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                                     ),
                                   ],
                                 ),
-                                // Replace the existing Text widget for assigned user with this Row
                                 Row(
                                   children: [
                                     Expanded(
@@ -456,14 +456,13 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                                         'Assigned to: ${assignedUser.firstName} ${assignedUser.lastName}',
                                       ),
                                     ),
-                                    if (assignedUser.id !=
-                                        -1) // Only show unassign button if a user is assigned
+                                    if (assignedUser.id != -1)
                                       TextButton.icon(
                                         onPressed: () async {
                                           try {
                                             await _shiftApi
                                                 .unassignShift(shift.id);
-                                            await _fetchShifts(); // Refresh the shifts list
+                                            await _fetchShifts();
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               const SnackBar(
@@ -522,7 +521,6 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
   }
 }
 
-// Extension to capitalize each word
 extension StringExtension on String {
   String toTitleCase() {
     return split(' ')

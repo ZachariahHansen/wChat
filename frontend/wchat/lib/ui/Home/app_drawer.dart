@@ -1,8 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:wchat/data/app_theme.dart';
+import 'package:wchat/services/storage/jwt_decoder.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   const AppDrawer({Key? key}) : super(key: key);
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  bool _isManager = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkManagerStatus();
+  }
+
+  Future<void> _checkManagerStatus() async {
+    try {
+      final payload = await JwtDecoder.decode();
+      setState(() {
+        _isManager = payload['is_manager'] ?? false;
+      });
+    } catch (e) {
+      setState(() {
+        _isManager = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,17 +72,19 @@ class AppDrawer extends StatelessWidget {
                     title: 'Availability',
                     onTap: () => Navigator.pushReplacementNamed(context, '/availability'),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Divider(height: 1),
-                  ),
-                  _buildDrawerItem(
-                    context,
-                    icon: Icons.admin_panel_settings_outlined,
-                    title: 'Manager View',
-                    onTap: () => Navigator.pushReplacementNamed(context, '/manager'),
-                    highlight: true,
-                  ),
+                  if (_isManager) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Divider(height: 1),
+                    ),
+                    _buildDrawerItem(
+                      context,
+                      icon: Icons.admin_panel_settings_outlined,
+                      title: 'Manager View',
+                      onTap: () => Navigator.pushReplacementNamed(context, '/manager'),
+                      highlight: true,
+                    ),
+                  ],
                 ],
               ),
             ),

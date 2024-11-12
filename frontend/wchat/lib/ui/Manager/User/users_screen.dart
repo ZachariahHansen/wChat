@@ -109,6 +109,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
     _departmentsController.text = user?.departments.join(', ') ?? '';
     bool isManager = user?.isManager ?? false;
+    bool isFullTime = user?.fullTime ?? true;
     
     // Find the role ID for the user's current role
     int? selectedRoleId;
@@ -214,6 +215,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         });
                       },
                     ),
+                    CheckboxListTile(
+                      title: const Text('Full Time'),
+                      value: isFullTime,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isFullTime = value ?? true;
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -238,6 +248,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           'role_id': selectedRoleId,
                           'departments': _departmentsController.text,
                           'is_manager': isManager,
+                          'full_time': isFullTime,
                         };
 
                         if (user == null) {
@@ -330,6 +341,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                 if (user.departments.isNotEmpty)
                                   Text('Departments: ${user.departments.join(", ")}'),
                                 Text('Hourly Rate: \$${user.hourlyRate.toStringAsFixed(2)}'),
+                                Text('Employment: ${user.fullTime ? 'Full Time' : 'Part Time'}'),
                                 if (user.isManager)
                                   const Text('Manager', 
                                     style: TextStyle(

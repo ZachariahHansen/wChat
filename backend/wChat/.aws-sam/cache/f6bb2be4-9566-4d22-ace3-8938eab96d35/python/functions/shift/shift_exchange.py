@@ -4,6 +4,8 @@ import jwt
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
+from functions.notifications.python.notification_service import NotificationService
+from datetime import datetime
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -132,9 +134,11 @@ def relinquish_shift(event, cur):
     
     # Check if the shift belongs to the user and is in a valid state
     cur.execute("""
-        SELECT id, status 
-        FROM shift 
-        WHERE id = %s AND user_id = %s
+        SELECT s.id, s.status, s.start_time, s.end_time, s.department_id,
+               d.name as department_name
+        FROM shift s
+        JOIN department d ON s.department_id = d.id
+        WHERE s.id = %s AND s.user_id = %s
     """, (shift_id, user_id))
     
     shift = cur.fetchone()
@@ -144,19 +148,32 @@ def relinquish_shift(event, cur):
     if shift['status'] != 'scheduled':
         return response(400, {'error': 'Shift cannot be relinquished - invalid status'})
     
-    # Update shift status to available_for_exchange
-    cur.execute("""
-        UPDATE shift 
-        SET status = 'available_for_exchange'
-        WHERE id = %s AND user_id = %s
-        RETURNING id
-    """, (shift_id, user_id))
-    
-    if cur.fetchone():
-        cur.connection.commit()
-        return response(200, {'message': 'Shift successfully marked as available for exchange'})
-    else:
-        return response(400, {'error': 'Failed to update shift status'})
+    try:
+        # Update shift status to available_for_exchange
+        cur.execute("""
+            UPDATE shift 
+            SET status = 'available_for_exchange'
+            WHERE id = %s AND user_id = %s
+            RETURNING id
+        """, (shift_id, user_id))
+        
+        if cur.fetchone():
+            # Notify department about available shift
+            notification_service = NotificationService()
+            shift_date = shift['start_time'].strftime('%B %d, %Y')
+            shift_start = shift['start_time'].strftime('%I:%M %p')
+            shift_end = shift['end_time'].strftime('%I:%M %p')
+            notification_content = f"A new shift is available: {shift_date} from {shift_start} to {shift_end}"
+            notification_service.notify_department(shift['department_id'], notification_content)
+            
+            cur.connection.commit()
+            return response(200, {'message': 'Shift successfully marked as available for exchange'})
+        else:
+            return response(400, {'error': 'Failed to update shift status'})
+            
+    except psycopg2.Error as e:
+        cur.connection.rollback()
+        return response(500, {'error': str(e)})
 
 @authenticate
 def pickup_shift(event, cur):
@@ -170,9 +187,11 @@ def pickup_shift(event, cur):
     
     # Check if shift is available for pickup
     cur.execute("""
-        SELECT id, department_id, start_time, end_time, user_id as current_user_id
-        FROM shift 
-        WHERE id = %s AND status = 'available_for_exchange'
+        SELECT s.id, s.department_id, s.start_time, s.end_time, 
+               s.user_id as current_user_id, d.name as department_name
+        FROM shift s
+        JOIN department d ON s.department_id = d.id
+        WHERE s.id = %s AND s.status = 'available_for_exchange'
     """, (shift_id,))
     
     shift = cur.fetchone()
@@ -211,20 +230,39 @@ def pickup_shift(event, cur):
     if cur.fetchone():
         return response(409, {'error': 'Schedule conflict detected'})
     
-    # Update shift assignment and status
-    cur.execute("""
-        UPDATE shift 
-        SET user_id = %s,
-            status = 'scheduled'
-        WHERE id = %s AND status = 'available_for_exchange'
-        RETURNING id
-    """, (user_id, shift_id))
-    
-    if cur.fetchone():
-        cur.connection.commit()
-        return response(200, {'message': 'Shift successfully picked up'})
-    else:
-        return response(400, {'error': 'Failed to pick up shift'})
+    try:
+        # Update shift assignment and status
+        cur.execute("""
+            UPDATE shift 
+            SET user_id = %s,
+                status = 'scheduled'
+            WHERE id = %s AND status = 'available_for_exchange'
+            RETURNING id
+        """, (user_id, shift_id))
+        
+        if cur.fetchone():
+            notification_service = NotificationService()
+            shift_date = shift['start_time'].strftime('%B %d, %Y')
+            shift_start = shift['start_time'].strftime('%I:%M %p')
+            shift_end = shift['end_time'].strftime('%I:%M %p')
+            
+            # Notify user who picked up the shift
+            pickup_content = f"New shift assigned: {shift_date} from {shift_start} to {shift_end}"
+            notification_service.create_notification(user_id, pickup_content)
+            
+            # Notify user who relinquished the shift
+            if shift['current_user_id']:
+                relinquish_content = f"Your shift on {shift_date} has been picked up"
+                notification_service.create_notification(shift['current_user_id'], relinquish_content)
+            
+            cur.connection.commit()
+            return response(200, {'message': 'Shift successfully picked up'})
+        else:
+            return response(400, {'error': 'Failed to pick up shift'})
+            
+    except psycopg2.Error as e:
+        cur.connection.rollback()
+        return response(500, {'error': str(e)})
 
 def response(status_code, body):
     return {

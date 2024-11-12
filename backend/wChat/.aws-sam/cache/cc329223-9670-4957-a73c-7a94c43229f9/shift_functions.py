@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
 from datetime import datetime, date
+from functions.notifications.python.notification_service import NotificationService
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -68,7 +69,6 @@ def get_shift(event, cur):
         return response(404, {'error': 'Shift not found'})
 
 @authenticate
-@authenticate
 def create_shift(event, cur):
     shift_data = json.loads(event['body'])
     required_fields = ['start_time', 'end_time', 'scheduled_by_id', 'department_id']
@@ -80,22 +80,57 @@ def create_shift(event, cur):
     start_time = datetime.fromisoformat(shift_data['start_time'])
     end_time = datetime.fromisoformat(shift_data['end_time'])
     
-    cur.execute("""
-        INSERT INTO shift (start_time, end_time, scheduled_by_id, department_id, user_id, status)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        RETURNING id
-    """, (start_time, end_time, shift_data['scheduled_by_id'], 
-          shift_data['department_id'], shift_data.get('user_id'), shift_data.get('status', 'scheduled')))
-    
-    new_shift_id = cur.fetchone()['id']
-    cur.connection.commit()
-    
-    return response(201, {'id': new_shift_id})
+    try:
+        cur.execute("""
+            INSERT INTO shift (start_time, end_time, scheduled_by_id, department_id, user_id, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (start_time, end_time, shift_data['scheduled_by_id'], 
+              shift_data['department_id'], shift_data.get('user_id'), shift_data.get('status', 'scheduled')))
+        
+        new_shift_id = cur.fetchone()['id']
+        
+        # Get department name for notification
+        cur.execute("SELECT name FROM department WHERE id = %s", (shift_data['department_id'],))
+        department = cur.fetchone()
+        
+        notification_service = NotificationService()
+        shift_date = start_time.strftime('%B %d, %Y')
+        shift_start = start_time.strftime('%I:%M %p')
+        shift_end = end_time.strftime('%I:%M %p')
+        
+        if shift_data.get('user_id'):
+            # Notify assigned user
+            notification_content = f"New shift assigned: {shift_date} from {shift_start} to {shift_end}"
+            notification_service.create_notification(shift_data['user_id'], notification_content)
+        else:
+            # Notify department about available shift
+            notification_content = f"A new shift is available: {shift_date} from {shift_start} to {shift_end}"
+            notification_service.notify_department(shift_data['department_id'], notification_content)
+        
+        cur.connection.commit()
+        return response(201, {'id': new_shift_id})
+        
+    except psycopg2.Error as e:
+        cur.connection.rollback()
+        return response(400, {'error': str(e)})
 
 @authenticate
 def update_shift(event, cur):
     shift_id = event['pathParameters']['id']
     shift_data = json.loads(event['body'])
+    
+    # Get current shift data for comparison
+    cur.execute("""
+        SELECT s.*, u.id as current_user_id
+        FROM shift s
+        LEFT JOIN "user" u ON s.user_id = u.id
+        WHERE s.id = %s
+    """, (shift_id,))
+    current_shift = cur.fetchone()
+    
+    if not current_shift:
+        return response(404, {'error': 'Shift not found'})
     
     update_fields = []
     update_values = []
@@ -112,33 +147,82 @@ def update_shift(event, cur):
     
     update_values.append(shift_id)
     
-    cur.execute(f"""
-        UPDATE shift
-        SET {', '.join(update_fields)}
-        WHERE id = %s
-        RETURNING id
-    """, tuple(update_values))
-    
-    updated_shift = cur.fetchone()
-    cur.connection.commit()
-    
-    if updated_shift:
-        return response(200, {'message': 'Shift updated successfully'})
-    else:
-        return response(404, {'error': 'Shift not found'})
+    try:
+        cur.execute(f"""
+            UPDATE shift
+            SET {', '.join(update_fields)}
+            WHERE id = %s
+            RETURNING *
+        """, tuple(update_values))
+        
+        updated_shift = cur.fetchone()
+        
+        if updated_shift:
+            notification_service = NotificationService()
+            shift_date = updated_shift['start_time'].strftime('%B %d, %Y')
+            
+            # If user assignment changed
+            if 'user_id' in shift_data:
+                if current_shift['user_id'] and current_shift['user_id'] != shift_data['user_id']:
+                    # Notify previous user about unassignment
+                    unassign_content = f"Your shift on {shift_date} has been unassigned"
+                    notification_service.create_notification(current_shift['user_id'], unassign_content)
+                
+                if shift_data['user_id']:
+                    # Notify new user about assignment
+                    assign_content = f"New shift assigned: {shift_date} from {updated_shift['start_time'].strftime('%I:%M %p')} to {updated_shift['end_time'].strftime('%I:%M %p')}"
+                    notification_service.create_notification(shift_data['user_id'], assign_content)
+            
+            # If time changed and user is assigned
+            elif ('start_time' in shift_data or 'end_time' in shift_data) and updated_shift['user_id']:
+                change_content = f"Your shift on {shift_date} has been updated: {updated_shift['start_time'].strftime('%I:%M %p')} to {updated_shift['end_time'].strftime('%I:%M %p')}"
+                notification_service.create_notification(updated_shift['user_id'], change_content)
+            
+            cur.connection.commit()
+            return response(200, {'message': 'Shift updated successfully'})
+        else:
+            return response(404, {'error': 'Shift not found'})
+            
+    except psycopg2.Error as e:
+        cur.connection.rollback()
+        return response(400, {'error': str(e)})
 
 @authenticate
 def delete_shift(event, cur):
     shift_id = event['pathParameters']['id']
     
-    cur.execute('DELETE FROM shift WHERE id = %s RETURNING id', (shift_id,))
-    deleted_shift = cur.fetchone()
-    cur.connection.commit()
+    # Get shift details before deletion
+    cur.execute("""
+        SELECT s.*, u.id as user_id
+        FROM shift s
+        LEFT JOIN "user" u ON s.user_id = u.id
+        WHERE s.id = %s
+    """, (shift_id,))
+    shift = cur.fetchone()
     
-    if deleted_shift:
-        return response(200, {'message': 'Shift deleted successfully'})
-    else:
+    if not shift:
         return response(404, {'error': 'Shift not found'})
+    
+    try:
+        cur.execute('DELETE FROM shift WHERE id = %s RETURNING id', (shift_id,))
+        deleted_shift = cur.fetchone()
+        
+        if deleted_shift:
+            # If shift was assigned to a user, notify them
+            if shift['user_id']:
+                notification_service = NotificationService()
+                shift_date = shift['start_time'].strftime('%B %d, %Y')
+                notification_content = f"Your shift on {shift_date} has been cancelled"
+                notification_service.create_notification(shift['user_id'], notification_content)
+            
+            cur.connection.commit()
+            return response(200, {'message': 'Shift deleted successfully'})
+        else:
+            return response(404, {'error': 'Shift not found'})
+            
+    except psycopg2.Error as e:
+        cur.connection.rollback()
+        return response(400, {'error': str(e)})
 
 def response(status_code, body):
     return {

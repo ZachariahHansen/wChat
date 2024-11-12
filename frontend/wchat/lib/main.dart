@@ -16,6 +16,7 @@ import 'package:wchat/ui/Profile/edit_profile_screen.dart';
 import 'package:wchat/ui/Manager/Shift/shifts_screen.dart';
 import 'package:wchat/ui/Availability/availability_screen.dart';
 import 'package:wchat/ui/Manager/TimeOffRequests/time_off_requests_screen.dart';
+import 'package:wchat/ui/Manager/Shift/generate_shifts_screen.dart';
 
 void main() {
   runApp(
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
       home: LoginScreen(),
       routes: {
         '/': (context) => HomeScreen(),
+        '/login': (context) => LoginScreen(),
         '/home': (context) => HomeScreen(),
         '/schedule': (context) => ScheduleScreen(),
         '/directory': (context) => DirectoryScreen(),
@@ -53,6 +55,7 @@ class MyApp extends StatelessWidget {
         '/manager/users': (context) => const UserManagementScreen(),
         '/manager/shifts': (context) => const ShiftsScreen(),
         '/manager/time_off': (context) => const TimeOffRequestsScreen(),
+        '/manager/generate_shifts': (context) => const GenerateShiftsScreen(),
         '/availability': (context) => const AvailabilityForm(),
       },
       onGenerateRoute: (settings) {

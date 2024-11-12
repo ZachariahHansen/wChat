@@ -3,6 +3,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
+from functions.notifications.python.notification_service import NotificationService
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -45,7 +46,7 @@ def update_user_role(event, cur):
         
         # First, verify that the role exists and get its ID
         cur.execute("""
-            SELECT id FROM role WHERE name = %s
+            SELECT id, name FROM role WHERE name = %s
         """, (role_name,))
         
         role = cur.fetchone()
@@ -68,6 +69,11 @@ def update_user_role(event, cur):
         if not updated_user:
             return response(404, {'error': 'User not found'})
         
+        # Send notification to user about role change
+        notification_service = NotificationService()
+        notification_content = f"Your role has been updated to {role['name']}"
+        notification_service.create_notification(user_id, notification_content)
+        
         # Commit the transaction
         cur.connection.commit()
         
@@ -80,10 +86,12 @@ def update_user_role(event, cur):
     except psycopg2.Error as e:
         # Log the database error (you might want to use proper logging)
         print(f"Database error: {e}")
+        cur.connection.rollback()
         return response(500, {'error': 'Database error occurred'})
     except Exception as e:
         # Log the error (you might want to use proper logging)
         print(f"Unexpected error: {e}")
+        cur.connection.rollback()
         return response(500, {'error': 'Internal server error'})
 
 def response(status_code, body):

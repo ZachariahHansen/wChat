@@ -47,8 +47,10 @@ def lambda_handler(event, context):
     conn = get_db_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            # Updated query to include is_manager from user table
             cur.execute("""
-                SELECT u.id, u.password, u.first_name, u.last_name, u.email, r.name as role
+                SELECT u.id, u.password, u.first_name, u.last_name, u.email, 
+                       r.name as role, u.is_manager
                 FROM "user" u
                 JOIN role r ON u.role_id = r.id
                 WHERE u.email = %s
@@ -71,6 +73,7 @@ def generate_jwt_token(user):
         'first_name': user['first_name'],
         'last_name': user['last_name'],
         'role': user['role'],
+        'is_manager': user['is_manager'],  # Use the actual is_manager value from the database
         'exp': datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)

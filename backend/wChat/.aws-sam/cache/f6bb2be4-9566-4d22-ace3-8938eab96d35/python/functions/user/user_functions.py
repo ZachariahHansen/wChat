@@ -53,7 +53,7 @@ def lambda_handler(event, context):
 def get_user(event, cur):
     user_id = event['pathParameters']['id']
     cur.execute("""
-        SELECT u.id, u.first_name, u.last_name, u.email, u.phone_number, u.hourly_rate, u.is_manager, 
+        SELECT u.id, u.first_name, u.last_name, u.email, u.phone_number, u.hourly_rate, u.is_manager, u.full_time,
                r.name as role, d.name as department
         FROM "user" u
         LEFT JOIN role r ON u.role_id = r.id
@@ -85,12 +85,15 @@ def create_user(event, cur):
     if not role:
         return response(404, {'error': 'Role not found'})
     
+    # Get full_time value from user_data, default to true if not provided
+    full_time = user_data.get('full_time', True)
+    
     cur.execute("""
-    INSERT INTO "user" (first_name, last_name, email, phone_number, hourly_rate, role_id, is_manager, password)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO "user" (first_name, last_name, email, phone_number, hourly_rate, role_id, is_manager, password, full_time)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING id, first_name, last_name, email
 """, (user_data['first_name'], user_data['last_name'], user_data['email'], user_data['phone_number'], 
-      user_data['hourly_rate'], user_data['role_id'], user_data['is_manager'], password_hash))
+      user_data['hourly_rate'], user_data['role_id'], user_data['is_manager'], password_hash, full_time))
     
     new_user = cur.fetchone()
     cur.connection.commit()
@@ -161,7 +164,8 @@ def update_user(event, cur):
             'phone_number': str,
             'hourly_rate': (float, int),
             'role_id': int,
-            'is_manager': bool
+            'is_manager': bool,
+            'full_time': bool
         }
         
         # Validate and process each field
@@ -224,7 +228,7 @@ def delete_user(event, cur):
     else:
         return response(404, {'error': 'User not found'})
 
-def     response(status_code, body):
+def response(status_code, body):
     return {
         'statusCode': status_code,
         'headers': {

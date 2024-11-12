@@ -3,6 +3,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
+from functions.notifications.python.notification_service import NotificationService
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -47,9 +48,10 @@ def assign_user_to_department(event, cur):
     if not cur.fetchone():
         return response(404, {'error': 'User not found'})
     
-    # Verify department exists
-    cur.execute('SELECT id FROM department WHERE id = %s', (assignment_data['department_id'],))
-    if not cur.fetchone():
+    # Verify department exists and get name
+    cur.execute('SELECT id, name FROM department WHERE id = %s', (assignment_data['department_id'],))
+    department = cur.fetchone()
+    if not department:
         return response(404, {'error': 'Department not found'})
     
     # Check if assignment already exists
@@ -61,20 +63,30 @@ def assign_user_to_department(event, cur):
     if cur.fetchone():
         return response(409, {'error': 'User is already assigned to this department'})
     
-    # Create the assignment
-    cur.execute("""
-        INSERT INTO department_group (user_id, department_id)
-        VALUES (%s, %s)
-        RETURNING department_id
-    """, (assignment_data['user_id'], assignment_data['department_id']))
-    
-    cur.connection.commit()
-    
-    return response(201, {
-        'message': 'User assigned to department successfully',
-        'user_id': assignment_data['user_id'],
-        'department_id': assignment_data['department_id']
-    })
+    try:
+        # Create the assignment
+        cur.execute("""
+            INSERT INTO department_group (user_id, department_id)
+            VALUES (%s, %s)
+            RETURNING department_id
+        """, (assignment_data['user_id'], assignment_data['department_id']))
+        
+        # Send notification to user
+        notification_service = NotificationService()
+        notification_content = f"You have been added to the {department['name']} department"
+        notification_service.create_notification(assignment_data['user_id'], notification_content)
+        
+        cur.connection.commit()
+        
+        return response(201, {
+            'message': 'User assigned to department successfully',
+            'user_id': assignment_data['user_id'],
+            'department_id': assignment_data['department_id']
+        })
+        
+    except psycopg2.Error as e:
+        cur.connection.rollback()
+        return response(500, {'error': str(e)})
 
 @authenticate
 def remove_user_from_department(event, cur):
@@ -82,19 +94,35 @@ def remove_user_from_department(event, cur):
     department_id = event['pathParameters']['department_id']
     user_id = event['pathParameters']['user_id']
     
-    cur.execute("""
-        DELETE FROM department_group 
-        WHERE department_id = %s AND user_id = %s
-        RETURNING department_id
-    """, (department_id, user_id))
-    
-    deleted_assignment = cur.fetchone()
-    cur.connection.commit()
-    
-    if deleted_assignment:
-        return response(200, {'message': 'User removed from department successfully'})
-    else:
-        return response(404, {'error': 'Assignment not found'})
+    try:
+        # Get department name for notification
+        cur.execute('SELECT name FROM department WHERE id = %s', (department_id,))
+        department = cur.fetchone()
+        if not department:
+            return response(404, {'error': 'Department not found'})
+        
+        cur.execute("""
+            DELETE FROM department_group 
+            WHERE department_id = %s AND user_id = %s
+            RETURNING department_id
+        """, (department_id, user_id))
+        
+        deleted_assignment = cur.fetchone()
+        
+        if deleted_assignment:
+            # Send notification to user
+            notification_service = NotificationService()
+            notification_content = f"You have been removed from the {department['name']} department"
+            notification_service.create_notification(user_id, notification_content)
+            
+            cur.connection.commit()
+            return response(200, {'message': 'User removed from department successfully'})
+        else:
+            return response(404, {'error': 'Assignment not found'})
+            
+    except psycopg2.Error as e:
+        cur.connection.rollback()
+        return response(500, {'error': str(e)})
 
 def response(status_code, body):
     return {

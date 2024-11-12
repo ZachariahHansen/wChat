@@ -82,25 +82,18 @@ class ProfilePictureApi {
       throw Exception('Invalid content type. Must be image/jpeg or image/png');
     }
 
-    // Add more headers and use multipart request
-    final request = http.MultipartRequest('PUT', 
-      Uri.parse('$baseUrl/users/$userId/profile-picture'))
-      ..headers.addAll({
+    // Create a regular PUT request with binary data
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/$userId/profile-picture'),
+      headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': contentType,
-        'Accept': 'application/json',
-      })
-      ..files.add(
-        http.MultipartFile.fromBytes(
-          'file',
-          imageBytes,
-          contentType: MediaType.parse(contentType),
-          filename: 'profile.$contentType'
-        )
-      );
+        'Accept': '*/*',
+        'x-content-type': contentType, // Backup header in case API Gateway strips Content-Type
+      },
+      body: imageBytes,
+    );
 
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
       return true;
