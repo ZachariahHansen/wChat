@@ -162,4 +162,4 @@ def response(status_code, body):
             'Access-Control-Allow-Methods': 'OPTIONS,GET,PUT'
         },
         'body': json.dumps(body, cls=DateTimeEncoder)
-    }
+    }   

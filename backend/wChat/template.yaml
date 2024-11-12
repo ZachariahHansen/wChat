@@ -871,6 +871,7 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+        - !Ref NotificationLayer
 
   UnassignShiftFunction:
     Type: AWS::Serverless::Function
