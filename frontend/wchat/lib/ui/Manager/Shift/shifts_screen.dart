@@ -297,7 +297,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
     );
   }
 
-  void _showAssignShiftDialog(Shift shift) {
+    void _showAssignShiftDialog(Shift shift) {
+    // Get the day of week (0 = Sunday, 6 = Saturday)
+    final dayOfWeek = shift.startTime.weekday % 7;
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -306,32 +309,135 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
               'Assign Shift - ${DateFormat('MMM dd, yyyy').format(shift.startTime)}'),
           content: SizedBox(
             width: double.maxFinite,
+            height: MediaQuery.of(context).size.height * 0.6, // Make dialog bigger
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: _users.length,
               itemBuilder: (context, index) {
                 final user = _users[index];
                 final isAssigned = shift.userId == user.id;
+                final availability = user.getAvailabilityForDay(dayOfWeek);
 
-                return RadioListTile<int>(
-                  title: Text('${user.firstName} ${user.lastName}'),
-                  subtitle: Text(user.email),
-                  value: user.id,
-                  groupValue: shift.userId,
-                  onChanged: (int? value) async {
-                    if (value != null) {
-                      try {
-                        await _shiftApi.assignShift(
-                          shift.id,
-                          value,
-                        );
-                        await _fetchShifts();
-                        Navigator.of(context).pop();
-                      } catch (e) {
-                        _showErrorSnackBar('Failed to assign shift: $e');
-                      }
-                    }
-                  },
+                // Format availability time
+                String availabilityText = 'Not available';
+                Color availabilityColor = Colors.red;
+                bool isAvailableForShift = false;
+
+                if (availability != null && availability.isAvailable) {
+                  if (availability.startTime != null && availability.endTime != null) {
+                    // Parse shift times
+                    final shiftStart = TimeOfDay(
+                      hour: shift.startTime.hour,
+                      minute: shift.startTime.minute,
+                    );
+                    final shiftEnd = TimeOfDay(
+                      hour: shift.endTime.hour,
+                      minute: shift.endTime.minute,
+                    );
+
+                    // Parse availability times
+                    final availStart = _parseTimeString(availability.startTime!);
+                    final availEnd = _parseTimeString(availability.endTime!);
+
+                    // Check if shift falls within availability
+                    isAvailableForShift = _isTimeInRange(shiftStart, availStart, availEnd) &&
+                        _isTimeInRange(shiftEnd, availStart, availEnd);
+
+                    availabilityText = 'Available ${availability.startTime} - ${availability.endTime}';
+                    availabilityColor = isAvailableForShift ? Colors.green : Colors.orange;
+                  }
+                }
+
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RadioListTile<int>(
+                          title: Text(
+                            '${user.firstName} ${user.lastName}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isAvailableForShift ? null : Colors.grey,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(user.email),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    isAvailableForShift
+                                        ? Icons.check_circle
+                                        : Icons.warning,
+                                    size: 16,
+                                    color: availabilityColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    availabilityText,
+                                    style: TextStyle(
+                                      color: availabilityColor,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (!isAvailableForShift)
+                                const Text(
+                                  'Warning: Shift time conflicts with availability',
+                                  style: TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          value: user.id,
+                          groupValue: shift.userId,
+                          onChanged: (int? value) async {
+                            if (value != null) {
+                              if (!isAvailableForShift) {
+                                // Show confirmation dialog for assigning outside availability
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Availability Conflict'),
+                                    content: const Text(
+                                      'This user is not available during the shift hours. '
+                                      'Are you sure you want to assign them to this shift?'
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(context, true),
+                                        child: const Text('Assign Anyway'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm != true) return;
+                              }
+                              
+                              try {
+                                await _shiftApi.assignShift(shift.id, value);
+                                await _fetchShifts();
+                                Navigator.of(context).pop();
+                              } catch (e) {
+                                _showErrorSnackBar('Failed to assign shift: $e');
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
@@ -345,6 +451,24 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
         );
       },
     );
+  }
+
+  // Helper method to parse time string (HH:mm:ss) to TimeOfDay
+  TimeOfDay _parseTimeString(String timeStr) {
+    final parts = timeStr.split(':');
+    return TimeOfDay(
+      hour: int.parse(parts[0]),
+      minute: int.parse(parts[1]),
+    );
+  }
+
+  // Helper method to check if a time falls within a range
+  bool _isTimeInRange(TimeOfDay time, TimeOfDay start, TimeOfDay end) {
+    final timeMinutes = time.hour * 60 + time.minute;
+    final startMinutes = start.hour * 60 + start.minute;
+    final endMinutes = end.hour * 60 + end.minute;
+    
+    return timeMinutes >= startMinutes && timeMinutes <= endMinutes;
   }
 
   Future<void> _updateShiftStatus(Shift shift, String newStatus) async {
@@ -407,6 +531,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                             isManager: false,
                             departments: [],
                             fullTime: true, // Default value for unassigned user
+                            availability: [],
                           ),
                         );
 

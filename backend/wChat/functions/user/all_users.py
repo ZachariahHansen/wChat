@@ -3,7 +3,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from functions.auth_layer.auth import authenticate
-from datetime import datetime
+from datetime import datetime, time
 
 # Database connection parameters
 DB_HOST = os.environ['DB_HOST']
@@ -20,6 +20,8 @@ def get_db_connection():
 def datetime_handler(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
+    elif isinstance(obj, time):
+        return obj.strftime('%H:%M')
     raise TypeError(f'Object of type {type(obj)} is not JSON serializable')
 
 def lambda_handler(event, context):
@@ -35,6 +37,7 @@ def lambda_handler(event, context):
 
 @authenticate
 def get_all_users(event, cur):
+    # First get all users with their basic information
     cur.execute("""
         WITH user_departments AS (
             SELECT 
@@ -43,6 +46,20 @@ def get_all_users(event, cur):
             FROM department_group dg
             JOIN department d ON dg.department_id = d.id
             GROUP BY dg.user_id
+        ),
+        user_availability AS (
+            SELECT 
+                user_id,
+                jsonb_agg(
+                    jsonb_build_object(
+                        'day', day,
+                        'is_available', is_available,
+                        'start_time', start_time,
+                        'end_time', end_time
+                    ) ORDER BY day
+                ) as availability
+            FROM availability
+            GROUP BY user_id
         )
         SELECT 
             u.id,
@@ -57,13 +74,45 @@ def get_all_users(event, cur):
             r.id as role_id,
             r.name as role_name,
             r.description as role_description,
-            COALESCE(ud.departments, '') as departments
+            COALESCE(ud.departments, '') as departments,
+            COALESCE(ua.availability, '[]'::jsonb) as availability
         FROM "user" u
         LEFT JOIN role r ON u.role_id = r.id
         LEFT JOIN user_departments ud ON u.id = ud.user_id
+        LEFT JOIN user_availability ua ON u.id = ua.user_id
         ORDER BY u.last_name, u.first_name
     """)
+    
     users = cur.fetchall()
+    
+    # Process availability to ensure all days are represented
+    for user in users:
+        availability_dict = {day: None for day in range(7)}
+        current_availability = user['availability']
+        
+        # Convert from string to list if needed
+        if isinstance(current_availability, str):
+            current_availability = json.loads(current_availability)
+            
+        # Fill in the existing availability data
+        for avail in current_availability:
+            day = avail['day']
+            availability_dict[day] = {
+                'is_available': avail['is_available'],
+                'start_time': avail['start_time'],
+                'end_time': avail['end_time']
+            }
+            
+        # Convert back to list format with all days
+        user['availability'] = [
+            {
+                'day': day,
+                'is_available': False if avail is None else avail['is_available'],
+                'start_time': None if avail is None else avail['start_time'],
+                'end_time': None if avail is None else avail['end_time']
+            }
+            for day, avail in availability_dict.items()
+        ]
     
     return response(200, users)
 

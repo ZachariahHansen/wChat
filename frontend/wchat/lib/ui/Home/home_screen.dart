@@ -2,8 +2,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
 import 'package:wchat/data/models/shift.dart';
+import 'package:wchat/data/models/notification.dart' as custom;
 import 'package:wchat/services/api/shift_api.dart';
-import 'package:wchat/services/api/pfp_api.dart'; 
+import 'package:wchat/services/api/pfp_api.dart';
+import 'package:wchat/services/api/notification_api.dart';
 import 'package:intl/intl.dart';
 import 'package:wchat/data/app_theme.dart';
 import 'package:wchat/services/storage/jwt_decoder.dart';
@@ -19,19 +21,61 @@ class _HomeScreenState extends State<HomeScreen> {
   Shift? _nextShift;
   bool _isLoading = true;
   final ShiftApi _shiftApi = ShiftApi();
-  final ProfilePictureApi _pfpApi = ProfilePictureApi();  
-  Uint8List? _profilePicture;  
+  final ProfilePictureApi _pfpApi = ProfilePictureApi();
+  final NotificationApi _notificationApi = NotificationApi();
+  Uint8List? _profilePicture;
   int? _userId;
+  List<custom.Notification> _notifications = [];
+  int _unreadCount = 0;
+  bool _isLoadingNotifications = false;
 
   @override
   void initState() {
     super.initState();
     _fetchNextShift();
     _loadUserId().then((_) {
-    _loadProfilePicture();
-  });
+      _loadProfilePicture();
+      _loadNotifications();
+    });
   }
 
+  Future<void> _loadNotifications() async {
+    if (_userId == null) return;
+
+    setState(() {
+      _isLoadingNotifications = true;
+    });
+
+    try {
+      final response = await _notificationApi.getNotifications(
+        userId: _userId!,
+        limit: 5,  // Show only latest 5 notifications
+        unreadOnly: false,
+      );
+
+      setState(() {
+        _notifications = response.notifications;
+        _unreadCount = response.notifications.where((n) => !n.isRead).length;
+        _isLoadingNotifications = false;
+      });
+    } catch (e) {
+      print('Error loading notifications: $e');
+      setState(() {
+        _isLoadingNotifications = false;
+      });
+    }
+  }
+
+  Future<void> _markAsRead() async {
+    if (_userId == null) return;
+
+    try {
+      await _notificationApi.markNotificationsRead(userId: _userId!);
+      await _loadNotifications();  // Reload to update the UI
+    } catch (e) {
+      print('Error marking notifications as read: $e');
+    }
+  }
    Future<void> _loadUserId() async {
   try {
     int? userId = await JwtDecoder.getUserId();
@@ -114,6 +158,75 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.textLight,
         actions: [
+          // Notification Bell
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: PopupMenuButton<String>(
+              offset: const Offset(0, 45),
+              onSelected: (value) {
+                if (value == 'mark_read') {
+                  _markAsRead();
+                }
+              },
+              child: Stack(
+                children: [
+                  const IconButton(
+                    icon: Icon(Icons.notifications_outlined),
+                    onPressed: null,
+                  ),
+                  if (_unreadCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 20,
+                          minHeight: 20,
+                        ),
+                        child: Text(
+                          _unreadCount.toString(),
+                          style: const TextStyle(
+                            color: AppColors.textLight,
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              itemBuilder: (BuildContext context) => [
+                if (_isLoadingNotifications)
+                  const PopupMenuItem<String>(
+                    enabled: false,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (_notifications.isEmpty)
+                  const PopupMenuItem<String>(
+                    enabled: false,
+                    child: Text('No notifications'),
+                  )
+                else
+                  ..._notifications.map((notification) => PopupMenuItem<String>(
+                    enabled: false,
+                    child: NotificationItem(notification: notification),
+                  )).toList(),
+                if (_notifications.isNotEmpty && _unreadCount > 0)
+                  PopupMenuItem<String>(
+                    value: 'mark_read',
+                    child: const Text('Mark all as read'),
+                  ),
+              ],
+            ),
+          ),
+          // Profile Menu
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: PopupMenuButton<String>(
@@ -204,8 +317,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Rest of your CurrentTimeWidget and NextShiftWidget remain the same
-
 class CurrentTimeWidget extends StatelessWidget {
   const CurrentTimeWidget({Key? key}) : super(key: key);
 
@@ -255,6 +366,47 @@ class CurrentTimeWidget extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class NotificationItem extends StatelessWidget {
+  final custom.Notification notification;
+
+  const NotificationItem({
+    Key? key,
+    required this.notification,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: notification.isRead
+            ? null
+            : AppColors.primaryLight.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        title: Text(
+          notification.content,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: notification.isRead
+                    ? FontWeight.normal
+                    : FontWeight.bold,
+              ),
+        ),
+        subtitle: Text(
+          DateFormat('MMM d, y h:mm a')
+              .format(notification.timeStamp),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        dense: true,
       ),
     );
   }
