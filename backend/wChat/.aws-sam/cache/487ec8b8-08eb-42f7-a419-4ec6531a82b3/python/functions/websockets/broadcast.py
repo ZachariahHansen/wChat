@@ -152,12 +152,6 @@ def store_message(sender_id, recipient_id, content, message_type):
             conn.commit()
     return message_id
 
-def get_group_members(group_id):
-    with get_db_connection() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT user_id FROM group_members WHERE group_id = %s", (group_id,))
-            return [row['user_id'] for row in cur.fetchall()]
-
 def broadcast_to_all(api_client, message):
     connections = get_all_connections()
     for connection in connections:

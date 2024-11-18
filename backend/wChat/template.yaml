@@ -1009,6 +1009,29 @@ Resources:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
 
+  AllProfilePicturesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: pfp_all.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Events:
+        GetAllProfilePictures:
+          Type: Api
+          Properties:
+            Path: /users/all/profile-pictures
+            Method: get
+            RestApiId: !Ref ProfilePictureApi
+        OptionsAllProfilePictures:
+          Type: Api
+          Properties:
+            Path: /users/all/profile-pictures
+            Method: options
+            RestApiId: !Ref ProfilePictureApi
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref AuthLayer
+
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
     Properties:

@@ -12,13 +12,14 @@ class TimeOffRequestsScreen extends StatefulWidget {
   State<TimeOffRequestsScreen> createState() => _TimeOffRequestsScreenState();
 }
 
-class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen> with SingleTickerProviderStateMixin {
+class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
+    with SingleTickerProviderStateMixin {
   final TimeOffRequestApi _timeOffApi = TimeOffRequestApi();
   bool _isLoading = true;
   List<Map<String, dynamic>> _requests = [];
   late TabController _tabController;
   final DateFormat _dateFormat = DateFormat('MMM d, yyyy');
-  
+
   @override
   void initState() {
     super.initState();

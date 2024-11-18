@@ -3,15 +3,16 @@ import 'package:wchat/data/models/message.dart';
 import 'package:wchat/services/api/message_api.dart';
 import 'package:wchat/services/storage/jwt_decoder.dart';
 import 'package:intl/intl.dart';
-import 'package:wchat/services/webSocket/web_socket_provider.dart'; 
+import 'package:wchat/services/webSocket/web_socket_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:wchat/data/app_theme.dart';
 
 class ConversationScreen extends StatefulWidget {
   final int otherUserId;
-  final String otherUserName; // Add this to show the name in the AppBar
+  final String otherUserName;
 
   const ConversationScreen({
-    Key? key, 
+    Key? key,
     required this.otherUserId,
     required this.otherUserName,
   }) : super(key: key);
@@ -25,7 +26,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late WebSocketProvider _webSocketProvider;
-  
+
   List<Message> _messages = [];
   int? _currentUserId;
   bool _isLoading = true;
@@ -124,13 +125,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
       setState(() => _isSending = false);
     }
   }
-
-  void _showErrorSnackBar(String message) {
+void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     );
   }
@@ -139,45 +143,162 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.otherUserName),
-        elevation: 1,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Expanded(
-                  child: _messages.isEmpty
-                      ? const Center(child: Text('No messages yet'))
-                      : ListView.builder(
-                          controller: _scrollController,
-                          reverse: true,
-                          itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            final message = _messages[index];
-                            return MessageBubble(
-                              message: message,
-                              isCurrentUser: message.sentByUserId == _currentUserId,
-                            );
-                          },
-                        ),
-                ),
-                _buildMessageInput(),
-              ],
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.otherUserName,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textLight,
+              ),
             ),
+            Text(
+              _isLoading ? 'Loading...' : '${_messages.length} messages',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textLight.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+        elevation: 0,
+        actions: [
+          CircleAvatar(
+            backgroundColor: AppColors.primaryLight,
+            child: Text(
+              widget.otherUserName.substring(0, 1).toUpperCase(),
+              style: TextStyle(
+                color: AppColors.textLight,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : _messages.isEmpty
+                      ? _buildEmptyState()
+                      : _buildMessageList(),
+            ),
+            _buildMessageInput(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 64,
+            color: AppColors.textSecondary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No messages yet',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Start the conversation!',
+            style: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.7),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageList() {
+    return ListView.builder(
+      controller: _scrollController,
+      reverse: true,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: _messages.length,
+      itemBuilder: (context, index) {
+        final message = _messages[index];
+        final isCurrentUser = message.sentByUserId == _currentUserId;
+        final showDate = index == _messages.length - 1 ||
+            !_isSameDay(_messages[index].timeStamp, _messages[index + 1].timeStamp);
+
+        return Column(
+          children: [
+            if (showDate) _buildDateDivider(message.timeStamp),
+            MessageBubble(
+              message: message,
+              isCurrentUser: isCurrentUser,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDateDivider(DateTime date) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: AppColors.textSecondary.withOpacity(0.2))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              _formatMessageDate(date),
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: AppColors.textSecondary.withOpacity(0.2))),
+        ],
+      ),
     );
   }
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: AppColors.background,
         boxShadow: [
           BoxShadow(
-            offset: const Offset(0, -2),
-            blurRadius: 2,
-            color: Colors.black.withOpacity(0.1),
+            offset: const Offset(0, -4),
+            blurRadius: 8,
+            color: AppColors.textSecondary.withOpacity(0.1),
           ),
         ],
       ),
@@ -187,35 +308,84 @@ class _ConversationScreenState extends State<ConversationScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Type a message...',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  hintStyle: TextStyle(color: AppColors.textSecondary),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                 ),
                 maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
-            const SizedBox(width: 8.0),
-            ElevatedButton(
-              onPressed: _isSending ? null : _sendMessage,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                shape: const CircleBorder(),
+            const SizedBox(width: 12),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
               ),
-              child: _isSending
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _isSending ? null : _sendMessage,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: _isSending
+                        ? SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
+                            ),
+                          )
+                        : Icon(
+                            Icons.send,
+                            color: AppColors.textLight,
+                            size: 24,
+                          ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  String _formatMessageDate(DateTime date) {
+    final now = DateTime.now();
+    if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day) {
+      return 'Today';
+    } else if (date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day - 1) {
+      return 'Yesterday';
+    }
+    return DateFormat('MMMM d, y').format(date);
   }
 }
 
@@ -237,33 +407,45 @@ class MessageBubble extends StatelessWidget {
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
-        margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-        padding: const EdgeInsets.all(12.0),
+        margin: EdgeInsets.only(
+          top: 4,
+          bottom: 4,
+          left: isCurrentUser ? 48 : 0,
+          right: isCurrentUser ? 0 : 48,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isCurrentUser 
-              ? Theme.of(context).primaryColor.withOpacity(0.2)
-              : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12.0),
-          boxShadow: [
-            BoxShadow(
-              offset: const Offset(0, 1),
-              blurRadius: 2,
-              color: Colors.black.withOpacity(0.1),
-            ),
-          ],
+          color: isCurrentUser
+              ? AppColors.primary.withOpacity(0.1)
+              : AppColors.surface,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(20),
+            topRight: const Radius.circular(20),
+            bottomLeft: Radius.circular(isCurrentUser ? 20 : 4),
+            bottomRight: Radius.circular(isCurrentUser ? 4 : 20),
+          ),
+          border: Border.all(
+            color: isCurrentUser
+                ? AppColors.primary.withOpacity(0.2)
+                : AppColors.textSecondary.withOpacity(0.1),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               message.content,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+              ),
             ),
-            const SizedBox(height: 4.0),
+            const SizedBox(height: 4),
             Text(
-              DateFormat('MMM d, h:mm a').format(message.timeStamp),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+              DateFormat('h:mm a').format(message.timeStamp),
+              style: TextStyle(
+                color: AppColors.textSecondary.withOpacity(0.7),
+                fontSize: 12,
               ),
             ),
           ],

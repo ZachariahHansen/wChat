@@ -72,7 +72,7 @@ class NotificationApi {
     final headers = await _getHeaders();
 
     final response = await http.put(
-      Uri.parse('$baseUrl/notifications'),
+      Uri.parse('$baseUrl/notifications/read'),
       headers: headers,
       body: json.encode({
         'userId': userId,

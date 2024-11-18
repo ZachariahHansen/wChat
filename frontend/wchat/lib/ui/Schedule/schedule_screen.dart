@@ -4,6 +4,7 @@ import 'package:wchat/ui/Home/app_drawer.dart';
 import 'package:wchat/services/api/shift_api.dart';
 import 'package:wchat/data/models/shift.dart';
 import 'package:intl/intl.dart';
+import 'package:wchat/data/app_theme.dart';
 
 class ScheduleScreen extends StatefulWidget {
   @override
@@ -52,7 +53,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     } catch (e) {
       print('Error fetching shifts: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load shifts: $e')),
+        SnackBar(
+          content: Text('Failed to load shifts: $e'),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }
@@ -75,104 +79,130 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Schedule'),
+        title: const Text('Schedule'),
+        elevation: 0,
       ),
       drawer: const AppDrawer(),
-      body: Column(
-        children: [
-          TableCalendar(
-            firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
-            focusedDay: _focusedDay,
-            calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            onFormatChanged: (format) {
-              if (_calendarFormat != format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              }
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
-            eventLoader: _getEventsForDay,
-            calendarStyle: CalendarStyle(
-              markerDecoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                shape: BoxShape.circle,
-              ),
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.background,
+            ],
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView(
-              children: _getEventsForDay(_selectedDay ?? _focusedDay)
-                  .map((shift) => _buildShiftTile(shift))
-                  .toList(),
-            ),
-          ),
-        ],
+        ),
+        child: Column(
+          children: [
+            _buildCalendarCard(),
+            const SizedBox(height: 16),
+            _buildShiftsList(),
+          ],
+        ),
       ),
-      floatingActionButton: Stack(
-        children: [
-          FloatingActionButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/shifts/available').then((_) {
-                // Refresh available shifts count when returning from the available shifts screen
-                _fetchAvailableShifts();
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  Widget _buildCalendarCard() {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: TableCalendar(
+          firstDay: DateTime.utc(2020, 1, 1),
+          lastDay: DateTime.utc(2030, 12, 31),
+          focusedDay: _focusedDay,
+          calendarFormat: _calendarFormat,
+          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+          onDaySelected: (selectedDay, focusedDay) {
+            setState(() {
+              _selectedDay = selectedDay;
+              _focusedDay = focusedDay;
+            });
+          },
+          onFormatChanged: (format) {
+            if (_calendarFormat != format) {
+              setState(() {
+                _calendarFormat = format;
               });
-            },
-            child: const Icon(Icons.attach_money),
-            backgroundColor: _availableShiftsCount > 0 
-              ? Theme.of(context).colorScheme.primary 
-              : Theme.of(context).colorScheme.secondary,
+            }
+          },
+          onPageChanged: (focusedDay) {
+            _focusedDay = focusedDay;
+          },
+          eventLoader: _getEventsForDay,
+          calendarStyle: CalendarStyle(
+            selectedDecoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+            todayDecoration: BoxDecoration(
+              color: AppColors.primaryLight.withOpacity(0.5),
+              shape: BoxShape.circle,
+            ),
+            markerDecoration: BoxDecoration(
+              color: AppColors.secondary,
+              shape: BoxShape.circle,
+            ),
+            weekendTextStyle: TextStyle(color: AppColors.textSecondary),
+            outsideTextStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
           ),
-          if (_availableShiftsCount > 0)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 20,
-                  minHeight: 20,
-                ),
-                child: Text(
-                  '$_availableShiftsCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+          headerStyle: HeaderStyle(
+            titleTextStyle: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
-          if (_isLoadingAvailableShifts)
-            const Positioned(
-              right: 0,
-              top: 0,
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
+            formatButtonDecoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(20),
             ),
+            formatButtonTextStyle: TextStyle(color: AppColors.textLight),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShiftsList() {
+    final shifts = _getEventsForDay(_selectedDay ?? _focusedDay);
+    
+    return Expanded(
+      child: shifts.isEmpty
+          ? _buildEmptyState()
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: shifts.length,
+              itemBuilder: (context, index) => _buildShiftTile(shifts[index]),
+            ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.event_available,
+            size: 64,
+            color: AppColors.textSecondary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No shifts scheduled for this day',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
     );
@@ -180,35 +210,145 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _buildShiftTile(Shift shift) {
     final timeFormatter = DateFormat('HH:mm');
+    
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: Icon(Icons.work, color: Theme.of(context).primaryColor),
-        title: Text('${shift.departmentName} Shift'),
-        subtitle: Text(
-          '${timeFormatter.format(shift.startTime)} - ${timeFormatter.format(shift.endTime)}',
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: AppColors.primaryLight.withOpacity(0.2),
+          width: 1,
         ),
-        trailing: Text(
-          shift.status,
-          style: TextStyle(
-            color: _getStatusColor(shift.status),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.work,
+            color: AppColors.primary,
+          ),
+        ),
+        title: Text(
+          '${shift.departmentName} Shift',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  Icons.access_time,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${timeFormatter.format(shift.startTime)} - ${timeFormatter.format(shift.endTime)}',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _getStatusColor(shift.status).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            shift.status,
+            style: TextStyle(
+              color: _getStatusColor(shift.status),
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
         ),
       ),
     );
   }
 
+  Widget _buildFloatingActionButton() {
+    return Stack(
+      children: [
+        FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.pushNamed(context, '/shifts/available').then((_) {
+              _fetchAvailableShifts();
+            });
+          },
+          icon: const Icon(Icons.attach_money),
+          label: const Text('Available Shifts'),
+          backgroundColor: _availableShiftsCount > 0 
+            ? AppColors.secondary
+            : AppColors.secondaryLight,
+        ),
+        if (_availableShiftsCount > 0)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.background, width: 2),
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 20,
+                minHeight: 20,
+              ),
+              child: Text(
+                '$_availableShiftsCount',
+                style: TextStyle(
+                  color: AppColors.textLight,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        if (_isLoadingAvailableShifts)
+          const Positioned(
+            right: 0,
+            top: 0,
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'scheduled':
-        return Colors.blue;
+        return AppColors.primary;
       case 'completed':
-        return Colors.green;
+        return AppColors.secondary;
       case 'cancelled':
-        return Colors.red;
+        return AppColors.error;
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 }

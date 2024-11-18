@@ -26,10 +26,10 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "5f146dd629545f953bdf6b1a625e1079d957fac946d349426ef113b4d20f1564"
+source_hash = "13eb6dd4c90165148b2940dc2a0115795cbde362c66f330ec51f19da816d963c"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "LoginFunctions", "ProfilePictureFunctions"]
+functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "LoginFunctions", "ProfilePictureFunctions", "AllProfilePicturesFunction"]
 
 [function_build_definitions.cc329223-9670-4957-a73c-7a94c43229f9]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\shift"
@@ -56,7 +56,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "connect.lambda_handler"
-source_hash = "e891d2c5e43cf9b1169815828046bcc438b6440e01b600f29908ddbf0d85c6df"
+source_hash = "28ee8f572810c71399c2ea13db2141f067efc30bd72fed36947a9b81194cfad7"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["OnConnectFunction", "OnDisconnectFunction", "BroadcastFunction"]
@@ -108,7 +108,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "e231a43f34ca088d4dd436afa0e22c3630fcc8ce7fb2bced2fa2bb69fa535eee"
+source_hash = "7848f4507c90facd664f58a38fe351b29ba27e24e351601c4263f0deb7bd8db6"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
@@ -128,7 +128,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "e231a43f34ca088d4dd436afa0e22c3630fcc8ce7fb2bced2fa2bb69fa535eee"
+source_hash = "7848f4507c90facd664f58a38fe351b29ba27e24e351601c4263f0deb7bd8db6"
 manifest_hash = ""
 layer = "OpenAILayer"
 
