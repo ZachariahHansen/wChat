@@ -55,7 +55,7 @@ def lambda_handler(event, context):
                 """, (user['id'], reset_token, expires_at))
                 
                 # Prepare reset link
-                reset_link = f"{os.environ['APP_URL'].rstrip('/')}/reset-password?token={reset_token}"
+                reset_link = f"{os.environ['APP_URL'].rstrip('/')}/#/reset-password?token={reset_token}"
                 
                 # Send email using AWS SES
                 ses = boto3.client('ses', region_name=os.environ.get('SES_REGION', 'us-east-2'))
