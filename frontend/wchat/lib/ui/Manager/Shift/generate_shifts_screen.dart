@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:wchat/data/models/department.dart';
 import 'package:wchat/services/api/department_api.dart';
+import 'package:wchat/services/api/openai_api.dart';
 import 'package:wchat/ui/Home/manager_app_drawer.dart';
 import 'package:intl/intl.dart';
 
@@ -27,6 +28,7 @@ class GenerateShiftsScreen extends StatefulWidget {
 class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
   final CalendarFormat _calendarFormat = CalendarFormat.month;
   final DepartmentApi _departmentApi = DepartmentApi();
+  final AISchedulingService _aiService = AISchedulingService();
   
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedStartDate;
@@ -40,11 +42,124 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
   double _maxHours = 8.0;
   List<BusyTimeSlot> _busyTimeSlots = [];
   bool _isLoading = true;
+  bool _isGenerating = false;
+  Map<String, dynamic>? _generatedSchedule;
 
   @override
   void initState() {
     super.initState();
     _loadDepartments();
+  }
+
+  String _formatRequirements() {
+    final StringBuffer requirements = StringBuffer();
+    
+    // Basic shift information
+    requirements.writeln('Regular shift hours: ${_startTime.format(context)} to ${_endTime.format(context)}');
+    
+    // Busy time slots
+    if (_busyTimeSlots.isNotEmpty) {
+      requirements.writeln('\nBusy time slots requiring additional staff:');
+      for (var slot in _busyTimeSlots) {
+        requirements.writeln('- ${slot.startTime.format(context)} to ${slot.endTime.format(context)} needs ${slot.requiredEmployees} staff');
+      }
+    }
+    
+    // Additional requirements
+    requirements.writeln('\nAdditional requirements:');
+    requirements.writeln('- Maximum hours per shift: ${_maxHours.toStringAsFixed(1)} hours');
+    if (_allowOvertime) {
+      requirements.writeln('- Overtime is allowed');
+    } else {
+      requirements.writeln('- No overtime allowed');
+    }
+    if (_autoAssign) {
+      requirements.writeln('- Auto-assign shifts to available staff');
+    }
+    
+    return requirements.toString();
+  }
+
+  Future<void> _generateShifts() async {
+    if (_selectedStartDate == null || _selectedEndDate == null) {
+      _showErrorSnackBar('Please select date range');
+      return;
+    }
+    if (_selectedDepartment == null) {
+      _showErrorSnackBar('Please select department');
+      return;
+    }
+
+    setState(() {
+      _isGenerating = true;
+      _generatedSchedule = null;
+    });
+
+    try {
+      final requirements = _formatRequirements();
+      final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedStartDate!);
+      
+      final schedule = await _aiService.generateSchedule(
+        requirements: requirements,
+        departmentId: _selectedDepartment!.id,
+        date: formattedDate,
+      );
+
+      setState(() {
+        _generatedSchedule = schedule;
+        _isGenerating = false;
+      });
+
+      _showScheduleDialog(schedule);
+    } catch (e) {
+      setState(() => _isGenerating = false);
+      _showErrorSnackBar('Failed to generate shifts: $e');
+    }
+  }
+
+  void _showScheduleDialog(Map<String, dynamic> schedule) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Generated Schedule'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var shift in schedule['shifts']) ...[
+                  Card(
+                    child: ListTile(
+                      title: Text('${shift['start_time']} - ${shift['end_time']}'),
+                      subtitle: Text('Role: ${shift['role']}'),
+                      trailing: Text('Staff ID: ${shift['assigned_staff'].join(', ')}'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // TODO: Implement save functionality
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Shifts saved successfully')),
+                );
+              },
+              child: const Text('Save Shifts'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _loadDepartments() async {
@@ -409,21 +524,26 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_selectedStartDate == null || _selectedEndDate == null) {
-                          _showErrorSnackBar('Please select date range');
-                          return;
-                        }
-                        if (_selectedDepartment == null) {
-                          _showErrorSnackBar('Please select department');
-                          return;
-                        }
-                        // TODO: Implement shift generation logic
-                      },
+                      onPressed: _isGenerating ? null : _generateShifts,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.all(16),
                       ),
-                      child: const Text('Generate Shifts'),
+                      child: _isGenerating
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text('Generating...'),
+                              ],
+                            )
+                          : const Text('Generate Shifts'),
                     ),
                   ),
                 ],

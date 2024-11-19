@@ -7,7 +7,7 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 10
+    Timeout: 25
     Environment:
       Variables:
         DB_HOST: 34.31.238.119
@@ -57,36 +57,11 @@ Resources:
     Properties:
       LayerName: openai-layer
       Description: Layer for the OpenAI API
-      ContentUri: ./
+      ContentUri: openai_layer/
       CompatibleRuntimes:
         - python3.12
     Metadata:
       BuildMethod: python3.12
-    Parameters:
-      ENV:
-        Type: String
-        Description: The environment for the OpenAI Layer
-        Default: dev
-    Policies:
-      - PolicyName: SecretsAccess
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - secretsmanager:GetSecretValue
-              Resource:
-                - !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/wChat/${ENV}/*'
-      - PolicyName: SSMAccess
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - ssm:GetParameter
-                - ssm:GetParameters
-                - ssm:GetParametersByPath
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/wChat/${ENV}/*'
 
   AuthLayer:
     Type: AWS::Serverless::LayerVersion
@@ -239,10 +214,39 @@ Resources:
       Handler: openai_handler.lambda_handler
       Runtime: python3.12
       CodeUri: functions/_ai/
-
       Layers:
         - !Ref DependenciesLayer
         - !Ref OpenAILayer
+
+  AIScheduleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: openai_functions.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/_ai/
+      Environment:
+        Variables:
+          OPENAI_API_KEY: !Sub '{{resolve:secretsmanager:/wChat/${ENV}/OPENAI_API_KEY}}'
+      Layers:
+        - !Ref DependenciesLayer
+        - !Ref OpenAILayer
+      Events:
+        AIScheduleAPI:
+          Type: Api
+          Properties:
+            Path: /ai/schedule
+            Method: post
+        AIScheduleOptions:
+          Type: Api
+          Properties:
+            Path: /ai/schedule
+            Method: options
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/wChat/${ENV}/*'
 
 # FUNCTIONS
 
@@ -1046,9 +1050,9 @@ Resources:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: 'true'
 Outputs:
-  UserApi:
-    Description: "API Gateway endpoint URL for Prod stage for User functions"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/users/"
+  Api:
+    Description: "API Gateway endpoint URL for Prod stage functions"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   WebSocketApi:
     Description: "API Gateway endpoint URL for Prod stage for Websockets"
     Value: !Sub "wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

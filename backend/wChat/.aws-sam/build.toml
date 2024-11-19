@@ -86,10 +86,10 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "openai_handler.lambda_handler"
-source_hash = "78de8722e164833694f095fa5c5fcbfc272a28d912ee39d8aaf2187f8e3c91e9"
+source_hash = "0b336644ef9c7f40c5389e146f1af7e3e54945d589c6162920ea5b412afcdf54"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["OpenAiHandler"]
+functions = ["OpenAiHandler", "AIScheduleFunction"]
 
 [function_build_definitions.51faa033-ed96-4fe0-a84a-8496a8de9102]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\notifications"
@@ -108,7 +108,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "7848f4507c90facd664f58a38fe351b29ba27e24e351601c4263f0deb7bd8db6"
+source_hash = "00a997d31825c2b633d9a9dd0042df2405c6d6f4555f725cc30ef25db757b54c"
 manifest_hash = ""
 layer = "DependenciesLayer"
 
@@ -122,16 +122,6 @@ source_hash = "ad729ffb4f15fddb0912803c3238f56f583ed76b5fd38a68a34cebe85c93ba47"
 manifest_hash = ""
 layer = "AuthLayer"
 
-[layer_build_definitions.487ec8b8-08eb-42f7-a419-4ec6531a82b3]
-layer_name = "OpenAILayer"
-codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat"
-build_method = "python3.12"
-compatible_runtimes = ["python3.12"]
-architecture = "x86_64"
-source_hash = "7848f4507c90facd664f58a38fe351b29ba27e24e351601c4263f0deb7bd8db6"
-manifest_hash = ""
-layer = "OpenAILayer"
-
 [layer_build_definitions.c2e26690-5647-46df-a4f8-b9031faa19be]
 layer_name = "NotificationLayer"
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\notifications"
@@ -141,3 +131,13 @@ architecture = "x86_64"
 source_hash = "5224b45af2cf5282820119fb4a5c79c4ab9474b697014b452f26e96c1eb07b5f"
 manifest_hash = ""
 layer = "NotificationLayer"
+
+[layer_build_definitions.c29fc717-5ddc-46c3-82d2-b952d51bab06]
+layer_name = "OpenAILayer"
+codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\openai_layer"
+build_method = "python3.12"
+compatible_runtimes = ["python3.12"]
+architecture = "x86_64"
+source_hash = "6770adcfe8e40dc976f7b0ae31135493c88c8135b4d29bd34de73f438f3ef225"
+manifest_hash = ""
+layer = "OpenAILayer"
