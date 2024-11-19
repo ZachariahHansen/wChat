@@ -26,7 +26,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "ceef1830f60e858198e74dc850024378a5f97e464a970c9f9afcdc672e941aa0"
+source_hash = "00376eb7c93e722dfa8b0424e501d5461e6214572ba523459fa1b2f7592ce495"
 manifest_hash = ""
 packagetype = "Zip"
 functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "ForgotPasswordFunction", "ResetPasswordFunction", "LoginFunctions", "ProfilePictureFunctions", "AllProfilePicturesFunction"]
@@ -108,7 +108,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "69af4c413dee5a58e8d2748e9eb9e0b11153f2e6cea631334bae595a60f06be6"
+source_hash = "ffb6b7a34385d1eb30d2b9de2dbe8c2f65c73f518c448288140b506dd86cfdc7"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

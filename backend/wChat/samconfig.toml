@@ -20,7 +20,7 @@ confirm_changeset = true
 resolve_s3 = true
 s3_prefix = "wChat"
 region = "us-east-2"
-parameter_overrides = "ExampleApiKey=\"123456789012345678901234567890\" ENV=\"dev\" SESDomain=\"zachariahhansen.com\" SESRegion=\"us-east-2\" SESSenderEmail=\"noreply@zachariahhansen.com\" SESConfigurationSet=\"WorkChatEmailConfig\" FLUTTER_APP_URL=\"https://zachariahhansen.com/\""
+parameter_overrides = "ExampleApiKey=\"123456789012345678901234567890\" ENV=\"dev\" SESDomain=\"zachariahhansen.com\" SESRegion=\"us-east-2\" SESSenderEmail=\"noreply@zachariahhansen.com\" SESConfigurationSet=\"WorkChatEmailConfig\" FlutterAppUrl=\"https://zachariahhansen.com/\""
 image_repositories = []
 
 

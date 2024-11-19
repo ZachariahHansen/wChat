@@ -5,6 +5,23 @@ Description: >
 
   Sample SAM Template for wChat
 
+Parameters:
+  ENV:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: Environment type
+
+  SESSenderEmail:
+    Type: String
+    Description: Email address to send from using SES
+
+  FlutterAppUrl:
+    Type: String
+    Description: URL for the Flutter application
+
 Globals:
   Function:
     Timeout: 25
@@ -20,25 +37,14 @@ Globals:
           Fn::Sub: "${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com"
         WEBSOCKET_API_STAGE: Prod
         MY_AWS_REGION: !Ref "AWS::Region"
-        SENDER_EMAIL: zachariahjhansen@gmail.com
+        SENDER_EMAIL: !Ref SESSenderEmail
         AuthorizerResultTtlInSeconds: 0  # This disables caching
-        # EMAIL_FUNCTION_NAME: !Ref EmailFunction
         OPENAI_API_KEY: !Sub '{{resolve:secretsmanager:/wChat/${ENV}/OPENAI_API_KEY:SecretString}}'
-        # FINE_TUNED_MODEL_ID: !Sub '{{resolve:ssm:/wChat/${ENV}/FINE_TUNED_MODEL_ID}}'
-        APP_URL: https://zachariahhansen.com/
+        APP_URL: !Ref FlutterAppUrl 
         ENV: !Ref ENV
     MemorySize: 128
     LoggingConfig:
       LogFormat: JSON
-
-Parameters:
-  ENV:
-    Type: String
-    Default: dev
-    AllowedValues:
-      - dev
-      - prod
-    Description: The environment for the application
 
 Resources:
   # Layers
