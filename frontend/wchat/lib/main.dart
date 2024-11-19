@@ -18,6 +18,7 @@ import 'package:wchat/ui/Availability/availability_screen.dart';
 import 'package:wchat/ui/Manager/TimeOffRequests/time_off_requests_screen.dart';
 import 'package:wchat/ui/Manager/Shift/generate_shifts_screen.dart';
 import 'package:wchat/ui/ForgotPassword/forgot_password_screen.dart';
+import 'package:wchat/ui/ForgotPassword/reset_password_screen.dart';
 
 void main() {
   runApp(
@@ -42,25 +43,26 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: LoginScreen(),
-      routes: {
-        '/': (context) => HomeScreen(),
-        '/login': (context) => LoginScreen(),
-        '/home': (context) => HomeScreen(),
-        '/schedule': (context) => ScheduleScreen(),
-        '/directory': (context) => DirectoryScreen(),
-        '/messages': (context) => MessageListScreen(),
-        '/shifts/available': (context) => const ShiftPickupScreen(),
-        '/manager': (context) => ManagerHomeScreen(),
-        '/manager/departments': (context) => const DepartmentScreen(),
-        '/manager/roles': (context) => const RoleScreen(),
-        '/manager/users': (context) => const UserManagementScreen(),
-        '/manager/shifts': (context) => const ShiftsScreen(),
-        '/manager/time_off': (context) => const TimeOffRequestsScreen(),
-        '/manager/generate_shifts': (context) => const GenerateShiftsScreen(),
-        '/availability': (context) => const AvailabilityForm(),
-        '/forgot-password': (context) => const ForgotPasswordScreen(),
-      },
       onGenerateRoute: (settings) {
+        // First, check if it's a special route that needs query parameter handling
+        final uri = Uri.parse(settings.name ?? '');
+        
+        // Handle reset password route with token
+        if (uri.path == '/reset-password') {
+          final token = uri.queryParameters['token'];
+          if (token == null) {
+            return MaterialPageRoute(
+              builder: (_) => const Scaffold(
+                body: Center(child: Text('Invalid reset link')),
+              ),
+            );
+          }
+          return MaterialPageRoute(
+            builder: (_) => ResetPasswordScreen(token: token),
+          );
+        }
+
+        // Handle profile routes with arguments
         if (settings.name == '/profile') {
           final userId = settings.arguments as int;
           return MaterialPageRoute(
@@ -73,7 +75,48 @@ class MyApp extends StatelessWidget {
             builder: (context) => EditProfileScreen(userId: userId),
           );
         }
-        return null;
+
+        // Handle regular routes
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(builder: (_) => HomeScreen());
+          case '/login':
+            return MaterialPageRoute(builder: (_) => LoginScreen());
+          case '/home':
+            return MaterialPageRoute(builder: (_) => HomeScreen());
+          case '/schedule':
+            return MaterialPageRoute(builder: (_) => ScheduleScreen());
+          case '/directory':
+            return MaterialPageRoute(builder: (_) => DirectoryScreen());
+          case '/messages':
+            return MaterialPageRoute(builder: (_) => MessageListScreen());
+          case '/shifts/available':
+            return MaterialPageRoute(builder: (_) => const ShiftPickupScreen());
+          case '/manager':
+            return MaterialPageRoute(builder: (_) => ManagerHomeScreen());
+          case '/manager/departments':
+            return MaterialPageRoute(builder: (_) => const DepartmentScreen());
+          case '/manager/roles':
+            return MaterialPageRoute(builder: (_) => const RoleScreen());
+          case '/manager/users':
+            return MaterialPageRoute(builder: (_) => const UserManagementScreen());
+          case '/manager/shifts':
+            return MaterialPageRoute(builder: (_) => const ShiftsScreen());
+          case '/manager/time_off':
+            return MaterialPageRoute(builder: (_) => const TimeOffRequestsScreen());
+          case '/manager/generate_shifts':
+            return MaterialPageRoute(builder: (_) => const GenerateShiftsScreen());
+          case '/availability':
+            return MaterialPageRoute(builder: (_) => const AvailabilityForm());
+          case '/forgot-password':
+            return MaterialPageRoute(builder: (_) => const ForgotPasswordScreen());
+          default:
+            return MaterialPageRoute(
+              builder: (_) => const Scaffold(
+                body: Center(child: Text('Route not found')),
+              ),
+            );
+        }
       },
     );
   }

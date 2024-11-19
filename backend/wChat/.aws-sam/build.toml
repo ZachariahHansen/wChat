@@ -26,10 +26,10 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "user_functions.lambda_handler"
-source_hash = "60d631d633421568c0aa11c570c6f115d2bdda14ef8dfa4aac3130829263636d"
+source_hash = "ceef1830f60e858198e74dc850024378a5f97e464a970c9f9afcdc672e941aa0"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "ForgotPasswordFunction", "LoginFunctions", "ProfilePictureFunctions", "AllProfilePicturesFunction"]
+functions = ["UpdateUserRoleFunction", "UserFunctions", "GetAllUsersFunction", "UpdatePasswordFunction", "ForgotPasswordFunction", "ResetPasswordFunction", "LoginFunctions", "ProfilePictureFunctions", "AllProfilePicturesFunction"]
 
 [function_build_definitions.cc329223-9670-4957-a73c-7a94c43229f9]
 codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wChat\\functions\\shift"
@@ -108,7 +108,7 @@ codeuri = "C:\\Users\\zhansen\\Documents\\Neumont\\0_Capstone\\repo\\backend\\wC
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
-source_hash = "6ee1cd827e6914492df672f0d24346f90da6855e40efc4cf08301ad730995235"
+source_hash = "69af4c413dee5a58e8d2748e9eb9e0b11153f2e6cea631334bae595a60f06be6"
 manifest_hash = ""
 layer = "DependenciesLayer"
 

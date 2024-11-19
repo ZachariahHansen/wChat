@@ -700,6 +700,26 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
 
+  ResetPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: reset_password.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Events:
+        ResetPassword:
+          Type: Api
+          Properties:
+            Path: /users/reset-password
+            Method: post
+        OptionsResetPassword:
+          Type: Api
+          Properties:
+            Path: /users/reset-password
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
+
   LoginFunctions:
     Type: AWS::Serverless::Function
     Properties:

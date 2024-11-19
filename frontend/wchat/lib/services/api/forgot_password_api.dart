@@ -46,4 +46,38 @@ class ForgotPasswordApi {
       throw Exception('Failed to connect to server');
     }
   }
+
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      if (baseUrl == null) {
+        await _loadUrl();
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/reset-password'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: json.encode({
+          'token': token,
+          'new_password': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return;
+      }
+
+      print('Failed to reset password: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      throw Exception('Failed to reset password');
+    } catch (e) {
+      print('Error resetting password: $e');
+      throw Exception('Failed to connect to server');
+    }
+  }
 }
+
