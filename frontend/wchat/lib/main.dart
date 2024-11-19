@@ -17,6 +17,7 @@ import 'package:wchat/ui/Manager/Shift/shifts_screen.dart';
 import 'package:wchat/ui/Availability/availability_screen.dart';
 import 'package:wchat/ui/Manager/TimeOffRequests/time_off_requests_screen.dart';
 import 'package:wchat/ui/Manager/Shift/generate_shifts_screen.dart';
+import 'package:wchat/ui/ForgotPassword/forgot_password_screen.dart';
 
 void main() {
   runApp(
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
         '/manager/time_off': (context) => const TimeOffRequestsScreen(),
         '/manager/generate_shifts': (context) => const GenerateShiftsScreen(),
         '/availability': (context) => const AvailabilityForm(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/profile') {

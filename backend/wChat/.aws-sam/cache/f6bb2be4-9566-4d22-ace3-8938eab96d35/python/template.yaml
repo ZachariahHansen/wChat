@@ -25,6 +25,7 @@ Globals:
         # EMAIL_FUNCTION_NAME: !Ref EmailFunction
         OPENAI_API_KEY: !Sub '{{resolve:secretsmanager:/wChat/${ENV}/OPENAI_API_KEY:SecretString}}'
         # FINE_TUNED_MODEL_ID: !Sub '{{resolve:ssm:/wChat/${ENV}/FINE_TUNED_MODEL_ID}}'
+        APP_URL: https://zachariahhansen.com/
         ENV: !Ref ENV
     MemorySize: 128
     LoggingConfig:
@@ -665,6 +666,39 @@ Resources:
       Layers:
         - !Ref DependenciesLayer
         - !Ref AuthLayer
+
+  ForgotPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: forgot_password.lambda_handler
+      Runtime: python3.12
+      CodeUri: functions/user/
+      Environment:
+        Variables:
+          SES_REGION: us-east-2
+          SES_SENDER_EMAIL: noreply@zachariahhansen.com
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - 'ses:SendEmail'
+                - 'ses:SendRawEmail'
+                - 'ses:VerifyEmailIdentity'  
+                - 'ses:GetIdentityVerificationAttributes'  
+              Resource: '*'
+      Events:
+        ForgotPassword:
+          Type: Api
+          Properties:
+            Path: /users/forgot-password
+            Method: post
+        OptionsForgotPassword:
+          Type: Api
+          Properties:
+            Path: /users/forgot-password
+            Method: options
+      Layers:
+        - !Ref DependenciesLayer
 
   LoginFunctions:
     Type: AWS::Serverless::Function

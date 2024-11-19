@@ -160,7 +160,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/forgot-password');
+                      },
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   ValueListenableBuilder(
                     valueListenable: fieldValidNotifier,
                     builder: (_, isValid, __) {
