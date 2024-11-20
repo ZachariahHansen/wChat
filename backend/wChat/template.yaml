@@ -41,6 +41,8 @@ Globals:
         AuthorizerResultTtlInSeconds: 0  # This disables caching
         OPENAI_API_KEY: !Sub '{{resolve:secretsmanager:/wChat/${ENV}/OPENAI_API_KEY:SecretString}}'
         APP_URL: !Ref FlutterAppUrl 
+        COGNITO_USER_POOL_ID: us-east-2_YoGvfVRsp
+        COGNITO_APP_CLIENT_ID: your-app-client-id
         ENV: !Ref ENV
     MemorySize: 128
     LoggingConfig:
