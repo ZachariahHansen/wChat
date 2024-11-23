@@ -8,6 +8,7 @@ import 'package:wchat/services/api/user_api.dart';
 import 'package:wchat/services/api/department_api.dart';
 import 'package:intl/intl.dart';
 import 'package:wchat/services/storage/jwt_decoder.dart';
+import 'package:wchat/data/app_theme.dart';
 
 class ShiftsScreen extends StatefulWidget {
   const ShiftsScreen({super.key});
@@ -129,7 +130,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
       ),
     );
   }
@@ -142,7 +143,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
     TimeOfDay? startTime;
     TimeOfDay? endTime;
     Department? selectedDepartment;
-    String selectedStatus = 'scheduled'; // Default status
+    String selectedStatus = 'scheduled';
 
     return showDialog(
       context: context,
@@ -150,16 +151,26 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add New Shift'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Text(
+                'Add New Shift',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: dateController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Date',
-                        prefixIcon: Icon(Icons.calendar_today),
+                        prefixIcon: Icon(Icons.calendar_today, color: AppColors.primary),
+                        labelStyle: TextStyle(color: AppColors.textSecondary),
                       ),
                       readOnly: true,
                       onTap: () async {
@@ -181,9 +192,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                     const SizedBox(height: 16),
                     TextField(
                       controller: startTimeController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Start Time',
-                        prefixIcon: Icon(Icons.access_time),
+                        prefixIcon: Icon(Icons.access_time, color: AppColors.primary),
+                        labelStyle: TextStyle(color: AppColors.textSecondary),
                       ),
                       readOnly: true,
                       onTap: () async {
@@ -202,9 +214,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                     const SizedBox(height: 16),
                     TextField(
                       controller: endTimeController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'End Time',
-                        prefixIcon: Icon(Icons.access_time),
+                        prefixIcon: Icon(Icons.access_time, color: AppColors.primary),
+                        labelStyle: TextStyle(color: AppColors.textSecondary),
                       ),
                       readOnly: true,
                       onTap: () async {
@@ -222,9 +235,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<Department>(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Department',
-                        prefixIcon: Icon(Icons.business),
+                        prefixIcon: Icon(Icons.business, color: AppColors.primary),
+                        labelStyle: TextStyle(color: AppColors.textSecondary),
                       ),
                       value: selectedDepartment,
                       items: _departments.map((Department department) {
@@ -241,9 +255,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Status',
-                        prefixIcon: Icon(Icons.assignment_turned_in),
+                        prefixIcon: Icon(Icons.assignment_turned_in, color: AppColors.primary),
+                        labelStyle: TextStyle(color: AppColors.textSecondary),
                       ),
                       value: selectedStatus,
                       items: _statusOptions.map((String status) {
@@ -264,7 +279,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -304,9 +322,16 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                       _showErrorSnackBar('Please fill in all fields');
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   child: const Text('Create'),
                 ),
               ],
+              actionsPadding: const EdgeInsets.all(16),
             );
           },
         );
@@ -315,18 +340,25 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
   }
 
   void _showAssignShiftDialog(Shift shift) {
-    // Get the day of week (0 = Sunday, 6 = Saturday)
     final dayOfWeek = shift.startTime.weekday % 7;
     
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           title: Text(
-              'Assign Shift - ${DateFormat('MMM dd, yyyy').format(shift.startTime)}'),
+            'Assign Shift - ${DateFormat('MMM dd, yyyy').format(shift.startTime)}',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           content: SizedBox(
             width: double.maxFinite,
-            height: MediaQuery.of(context).size.height * 0.6, // Make dialog bigger
+            height: MediaQuery.of(context).size.height * 0.6,
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: _users.length,
@@ -335,14 +367,12 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                 final isAssigned = shift.userId == user.id;
                 final availability = user.getAvailabilityForDay(dayOfWeek);
 
-                // Format availability time
                 String availabilityText = 'Not available';
-                Color availabilityColor = Colors.red;
+                Color availabilityColor = AppColors.error;
                 bool isAvailableForShift = false;
 
                 if (availability != null && availability.isAvailable) {
                   if (availability.startTime != null && availability.endTime != null) {
-                    // Parse shift times
                     final shiftStart = TimeOfDay(
                       hour: shift.startTime.hour,
                       minute: shift.startTime.minute,
@@ -352,20 +382,25 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                       minute: shift.endTime.minute,
                     );
 
-                    // Parse availability times
                     final availStart = _parseTimeString(availability.startTime!);
                     final availEnd = _parseTimeString(availability.endTime!);
 
-                    // Check if shift falls within availability
                     isAvailableForShift = _isTimeInRange(shiftStart, availStart, availEnd) &&
                         _isTimeInRange(shiftEnd, availStart, availEnd);
 
                     availabilityText = 'Available ${availability.startTime} - ${availability.endTime}';
-                    availabilityColor = isAvailableForShift ? Colors.green : Colors.orange;
+                    availabilityColor = isAvailableForShift ? AppColors.secondary : AppColors.primary;
                   }
                 }
 
                 return Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: AppColors.primaryLight.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
@@ -376,7 +411,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                             '${user.firstName} ${user.lastName}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: isAvailableForShift ? null : Colors.grey,
+                              color: isAvailableForShift ? AppColors.textPrimary : AppColors.textSecondary,
                             ),
                           ),
                           subtitle: Column(
@@ -404,10 +439,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                                 ],
                               ),
                               if (!isAvailableForShift)
-                                const Text(
+                                Text(
                                   'Warning: Shift time conflicts with availability',
                                   style: TextStyle(
-                                    color: Colors.orange,
+                                    color: AppColors.primary,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -418,11 +453,19 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                           onChanged: (int? value) async {
                             if (value != null) {
                               if (!isAvailableForShift) {
-                                // Show confirmation dialog for assigning outside availability
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: const Text('Availability Conflict'),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    title: Text(
+                                      'Availability Conflict',
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                     content: const Text(
                                       'This user is not available during the shift hours. '
                                       'Are you sure you want to assign them to this shift?'
@@ -430,10 +473,19 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context, false),
-                                        child: const Text('Cancel'),
+                                        child: Text(
+                                          'Cancel',
+                                          style: TextStyle(color: AppColors.textSecondary),
+                                        ),
                                       ),
                                       ElevatedButton(
                                         onPressed: () => Navigator.pop(context, true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.secondary,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                        ),
                                         child: const Text('Assign Anyway'),
                                       ),
                                     ],
@@ -462,7 +514,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(
+                'Close',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
             ),
           ],
         );
@@ -470,7 +525,6 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
     );
   }
 
-  // Helper method to parse time string (HH:mm:ss) to TimeOfDay
   TimeOfDay _parseTimeString(String timeStr) {
     final parts = timeStr.split(':');
     return TimeOfDay(
@@ -479,7 +533,6 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
     );
   }
 
-  // Helper method to check if a time falls within a range
   bool _isTimeInRange(TimeOfDay time, TimeOfDay start, TimeOfDay end) {
     final timeMinutes = time.hour * 60 + time.minute;
     final startMinutes = start.hour * 60 + start.minute;
@@ -498,7 +551,32 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
   }
 
   Widget _buildShiftList(List<Shift> shifts) {
+    if (shifts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.event_busy,
+              size: 48,
+              color: AppColors.textSecondary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No shifts found',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: shifts.length,
       itemBuilder: (context, index) {
         final shift = shifts[index];
@@ -520,46 +598,67 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
         );
 
         return Card(
-          child: ListTile(
-            title: Text(
-              '${DateFormat('MMM dd, yyyy').format(shift.startTime)} - ${shift.departmentName}',
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: AppColors.primaryLight.withOpacity(0.2),
+              width: 1,
             ),
-            subtitle: Column(
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${DateFormat('HH:mm').format(shift.startTime)} - ${DateFormat('HH:mm').format(shift.endTime)}',
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${DateFormat('MMM dd, yyyy').format(shift.startTime)} - ${shift.departmentName}',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    _buildStatusChip(shift.status),
+                  ],
                 ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Text('Status: '),
-                    DropdownButton<String>(
-                      value: shift.status,
-                      underline: Container(),
-                      items: _statusOptions.map((String status) {
-                        return DropdownMenuItem<String>(
-                          value: status,
-                          child: Text(
-                            status.replaceAll('_', ' ').toTitleCase(),
-                            style: TextStyle(
-                              color: _getStatusColor(status),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          _updateShiftStatus(shift, newValue);
-                        }
-                      },
+                    Icon(
+                      Icons.access_time,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${DateFormat('HH:mm').format(shift.startTime)} - ${DateFormat('HH:mm').format(shift.endTime)}',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
+                    Icon(
+                      Icons.person,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Assigned to: ${assignedUser.firstName} ${assignedUser.lastName}',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                     if (assignedUser.id != -1)
@@ -569,9 +668,9 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                             await _shiftApi.unassignShift(shift.id);
                             await _fetchShifts();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Successfully unassigned shift'),
-                                backgroundColor: Colors.green,
+                              SnackBar(
+                                content: const Text('Successfully unassigned shift'),
+                                backgroundColor: AppColors.secondary,
                               ),
                             );
                           } catch (e) {
@@ -581,22 +680,74 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                         icon: const Icon(Icons.person_remove, size: 18),
                         label: const Text('Unassign'),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
+                          foregroundColor: AppColors.error,
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           visualDensity: VisualDensity.compact,
                         ),
                       ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _showAssignShiftDialog(shift),
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text('Edit Assignment'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _showAssignShiftDialog(shift),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    Color backgroundColor;
+    Color textColor = AppColors.background;
+    
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        backgroundColor = AppColors.primary;
+        break;
+      case 'completed':
+        backgroundColor = AppColors.secondary;
+        break;
+      case 'cancelled':
+        backgroundColor = AppColors.error;
+        break;
+      case 'available_for_exchange':
+        backgroundColor = AppColors.primaryLight;
+        break;
+      default:
+        backgroundColor = AppColors.textSecondary;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status.replaceAll('_', ' ').toUpperCase(),
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
 
@@ -605,21 +756,42 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shift Management'),
+        elevation: 0,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
             Tab(text: 'Upcoming Shifts'),
             Tab(text: 'Previous Shifts'),
           ],
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          indicatorColor: AppColors.primary,
+          indicatorWeight: 3,
         ),
       ),
       drawer: const ManagerDrawer(),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddShiftDialog,
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.secondary.withOpacity(0.1),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            )
           : Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -628,15 +800,25 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                     controller: _searchController,
                     decoration: InputDecoration(
                       labelText: 'Search Shifts',
-                      prefixIcon: const Icon(Icons.search),
+                      labelStyle: TextStyle(color: AppColors.textSecondary),
+                      prefixIcon: Icon(Icons.search, color: AppColors.primary),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: Icon(Icons.clear, color: AppColors.textSecondary),
                         onPressed: () {
                           _searchController.clear();
                           _filterShifts();
                         },
                       ),
-                      border: const OutlineInputBorder(),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: AppColors.primaryLight),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: AppColors.primary, width: 2),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -652,22 +834,8 @@ class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderSt
                 ],
               ),
             ),
+      ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'scheduled':
-        return Colors.blue;
-      case 'completed':
-        return Colors.green;
-      case 'cancelled':
-        return Colors.red;
-      case 'available_for_exchange':
-        return Colors.orange;
-      default:
-        return Colors.black;
-    }
   }
 }
 
