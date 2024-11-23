@@ -174,37 +174,36 @@ class _ShiftPickupScreenState extends State<ShiftPickupScreen> {
   }
 
   Widget _buildPickupButton() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textSecondary.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 16,
+        right: 16,
+        bottom: 16,
+        top: 8,
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: _selectedShift == null || _isPickingUpShift
-              ? null
-              : _pickupShift,
+          onPressed:
+              _selectedShift == null || _isPickingUpShift ? null : _pickupShift,
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
             backgroundColor: AppColors.secondary,
+            foregroundColor: AppColors.textLight,
+            disabledBackgroundColor: AppColors.secondary.withOpacity(0.5),
+            disabledForegroundColor: AppColors.textLight.withOpacity(0.7),
+            elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
           child: _isPickingUpShift
               ? SizedBox(
-                  height: 20,
-                  width: 20,
+                  height: 25,
+                  width: 25,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.textLight),
                   ),
                 )
               : const Text(
@@ -212,6 +211,7 @@ class _ShiftPickupScreenState extends State<ShiftPickupScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
         ),
