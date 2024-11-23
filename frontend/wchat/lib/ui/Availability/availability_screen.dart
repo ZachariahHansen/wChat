@@ -143,138 +143,254 @@ class _AvailabilityFormState extends State<AvailabilityForm> {
       minute: int.parse(parts[1]),
     );
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-  title: const Text('Set Your Availability'),
-  actions: [
-    IconButton(
-      icon: const Icon(Icons.calendar_month),
-      onPressed: () async {
-        final result = await showDialog(
-          context: context,
-          builder: (context) => const TimeOffRequestDialog(),
-        );
-        if (result == true) {
-          // Optionally refresh the availability view if needed
-          _loadAvailability();
-        }
-      },
-    ),
-    IconButton(
-      icon: const Icon(Icons.save),
-      onPressed: _isLoading ? null : _saveAvailability,
-    ),
-  ],
-),
+        title: const Text('Set Your Availability'),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () async {
+              final result = await showDialog(
+                context: context,
+                builder: (context) => const TimeOffRequestDialog(),
+              );
+              if (result == true) {
+                _loadAvailability();
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _isLoading ? null : _saveAvailability,
+          ),
+        ],
+      ),
       drawer: const AppDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Weekly Schedule',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  ..._availability.map((day) {
-                    final dayIndex = day['day'] as int;
-                    final isAvailable = day['is_available'] as bool;
-                    
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Padding(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                ),
+              )
+            : RefreshIndicator(
+                onRefresh: _loadAvailability,
+                color: AppColors.primary,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
                         padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _daysOfWeek[dayIndex],
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                Switch(
-                                  value: isAvailable,
-                                  onChanged: (value) {
-                                    _updateAvailability(dayIndex, 'is_available', value);
-                                  },
-                                  activeColor: AppColors.secondary,
-                                ),
-                              ],
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.textSecondary.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                            if (isAvailable) ...[
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextButton(
-                                      onPressed: () async {
-                                        final time = await _showTimePicker(
-                                          context,
-                                          _parseTimeString(day['start_time']),
-                                        );
-                                        if (time != null) {
-                                          _updateAvailability(
-                                            dayIndex,
-                                            'start_time',
-                                            _formatTimeOfDay(time),
-                                          );
-                                        }
-                                      },
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.access_time),
-                                          const SizedBox(width: 8),
-                                          Text('Start: ${day['start_time']}'),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: TextButton(
-                                      onPressed: () async {
-                                        final time = await _showTimePicker(
-                                          context,
-                                          _parseTimeString(day['end_time']),
-                                        );
-                                        if (time != null) {
-                                          _updateAvailability(
-                                            dayIndex,
-                                            'end_time',
-                                            _formatTimeOfDay(time),
-                                          );
-                                        }
-                                      },
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.access_time),
-                                          const SizedBox(width: 8),
-                                          Text('End: ${day['end_time']}'),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.access_time_rounded,
+                              color: AppColors.primary,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Weekly Schedule',
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),
-                    );
-                  }).toList(),
-                ],
+                      const SizedBox(height: 16),
+                      ..._availability.map((day) {
+                        final dayIndex = day['day'] as int;
+                        final isAvailable = day['is_available'] as bool;
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: AppColors.primaryLight.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: isAvailable
+                                                ? AppColors.secondary.withOpacity(0.1)
+                                                : AppColors.error.withOpacity(0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            isAvailable
+                                                ? Icons.check_circle_outline
+                                                : Icons.do_not_disturb_on_outlined,
+                                            color: isAvailable
+                                                ? AppColors.secondary
+                                                : AppColors.error,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          _daysOfWeek[dayIndex],
+                                          style: TextStyle(
+                                            color: AppColors.textPrimary,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Switch(
+                                      value: isAvailable,
+                                      onChanged: (value) {
+                                        _updateAvailability(dayIndex, 'is_available', value);
+                                      },
+                                      activeColor: AppColors.secondary,
+                                    ),
+                                  ],
+                                ),
+                                if (isAvailable) ...[
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildTimeButton(
+                                          context,
+                                          'Start',
+                                          day['start_time'],
+                                          () async {
+                                            final time = await _showTimePicker(
+                                              context,
+                                              _parseTimeString(day['start_time']),
+                                            );
+                                            if (time != null) {
+                                              _updateAvailability(
+                                                dayIndex,
+                                                'start_time',
+                                                _formatTimeOfDay(time),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildTimeButton(
+                                          context,
+                                          'End',
+                                          day['end_time'],
+                                          () async {
+                                            final time = await _showTimePicker(
+                                              context,
+                                              _parseTimeString(day['end_time']),
+                                            );
+                                            if (time != null) {
+                                              _updateAvailability(
+                                                dayIndex,
+                                                'end_time',
+                                                _formatTimeOfDay(time),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildTimeButton(
+    BuildContext context,
+    String label,
+    String time,
+    VoidCallback onPressed,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppColors.primaryLight.withOpacity(0.2),
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.access_time,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '$label: $time',
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 }

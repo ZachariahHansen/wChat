@@ -5,6 +5,7 @@ import 'package:wchat/ui/Home/manager_app_drawer.dart';
 import 'package:wchat/services/api/role_api.dart';
 import 'package:wchat/services/api/user_api.dart';
 import 'package:wchat/ui/Manager/Roles/modify_roles_screen.dart';
+import 'package:wchat/data/app_theme.dart';
 
 class RoleScreen extends StatefulWidget {
   const RoleScreen({super.key});
@@ -83,68 +84,12 @@ class _RoleScreenState extends State<RoleScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
-    );
-  }
-
-  Future<void> _showAddRoleDialog() async {
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Role'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Role Name',
-                    hintText: 'Enter role name',
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Enter role description',
-                  ),
-                  maxLines: 3,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (nameController.text.isNotEmpty) {
-                  try {
-                    await _roleApi.createRole(
-                      nameController.text,
-                      descriptionController.text,
-                    );
-                    Navigator.of(context).pop();
-                    await _fetchRoles();
-                  } catch (e) {
-                    _showErrorSnackBar('Failed to create role: $e');
-                  }
-                }
-              },
-              child: const Text('Create'),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -153,7 +98,16 @@ class _RoleScreenState extends State<RoleScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Assign Role - ${user.firstName} ${user.lastName}'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Assign Role - ${user.firstName} ${user.lastName}',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -163,25 +117,41 @@ class _RoleScreenState extends State<RoleScreen> {
                 final role = _roles[index];
                 final isAssigned = user.role == role.name;
 
-                return RadioListTile(
-                  title: Text(role.name),
-                  subtitle: Text(role.description),
-                  value: role.name,
-                  groupValue: user.role,
-                  onChanged: (String? value) async {
-                    if (value != null) {
-                      try {
-                        await _userApi.updateUserRole(
-                          user.id,
-                          value,
-                        );
-                        await _fetchUsers(); // Refresh the users list
-                        Navigator.of(context).pop();
-                      } catch (e) {
-                        _showErrorSnackBar('Failed to update role assignment: $e');
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.primaryLight.withOpacity(0.2),
+                    ),
+                  ),
+                  child: RadioListTile(
+                    title: Text(
+                      role.name,
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: Text(
+                      role.description,
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                    value: role.name,
+                    groupValue: user.role,
+                    activeColor: AppColors.primary,
+                    onChanged: (String? value) async {
+                      if (value != null) {
+                        try {
+                          await _userApi.updateUserRole(user.id, value);
+                          await _fetchUsers();
+                          Navigator.of(context).pop();
+                        } catch (e) {
+                          _showErrorSnackBar('Failed to update role assignment: $e');
+                        }
                       }
-                    }
-                  },
+                    },
+                  ),
                 );
               },
             ),
@@ -189,7 +159,10 @@ class _RoleScreenState extends State<RoleScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(
+                'Close',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
             ),
           ],
         );
@@ -202,80 +175,181 @@ class _RoleScreenState extends State<RoleScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Role Management'),
+        elevation: 0,
       ),
       drawer: const ManagerDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.secondary.withOpacity(0.1),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                ),
+              )
+            : Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const RoleManagementScreen()),
-                          );
-                        },
-                        icon: const Icon(Icons.settings),
-                        label: const Text('Manage Roles'),
-                      ),
-                      SizedBox(
-                        width: 300,
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            labelText: 'Search Users',
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                _filterUsers();
-                              },
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.textSecondary.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              labelText: 'Search Users',
+                              labelStyle: TextStyle(color: AppColors.textSecondary),
+                              prefixIcon: Icon(Icons.search, color: AppColors.primary),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: Icon(Icons.clear, color: AppColors.textSecondary),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _filterUsers();
+                                      },
+                                    )
+                                  : null,
+                              filled: true,
+                              fillColor: AppColors.surface,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: AppColors.primaryLight),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: AppColors.primary, width: 2),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: AppColors.primaryLight.withOpacity(0.2)),
+                              ),
                             ),
-                            border: const OutlineInputBorder(),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _filteredUsers.length,
-                      itemBuilder: (context, index) {
-                        final user = _filteredUsers[index];
-                        final userRole = _roles.firstWhere(
-                          (role) => role.name == user.role,
-                          orElse: () => Role(id: -1, name: 'None', description: ''),
-                        );
-                        
-                        return Card(
-                          child: ListTile(
-                            title: Text('${user.firstName} ${user.lastName}'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(user.email),
-                                Text('Role: ${user.role.isEmpty ? 'None' : user.role}'),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _showAssignRoleDialog(user),
+                        const SizedBox(width: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RoleManagementScreen()),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.secondary,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                        );
-                      },
+                          icon: const Icon(Icons.settings),
+                          label: const Text('Manage Roles'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: _loadInitialData,
+                      color: AppColors.primary,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _filteredUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = _filteredUsers[index];
+                          final userRole = _roles.firstWhere(
+                            (role) => role.name == user.role,
+                            orElse: () => Role(id: -1, name: 'None', description: ''),
+                          );
+                          
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color: AppColors.primaryLight.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              title: Text(
+                                '${user.firstName} ${user.lastName}',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    user.email,
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: user.role.isEmpty
+                                          ? AppColors.error.withOpacity(0.1)
+                                          : AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      user.role.isEmpty ? 'No Role Assigned' : user.role,
+                                      style: TextStyle(
+                                        color: user.role.isEmpty
+                                            ? AppColors.error
+                                            : AppColors.primary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: AppColors.primary,
+                                ),
+                                onPressed: () => _showAssignRoleDialog(user),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
+      ),
     );
   }
 }

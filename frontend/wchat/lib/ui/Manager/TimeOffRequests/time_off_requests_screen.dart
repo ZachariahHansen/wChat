@@ -4,6 +4,7 @@ import 'package:wchat/services/api/time_off_api.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
 import 'package:intl/intl.dart';
 import 'package:wchat/ui/Home/manager_app_drawer.dart';
+import 'package:wchat/data/app_theme.dart';
 
 class TimeOffRequestsScreen extends StatefulWidget {
   const TimeOffRequestsScreen({super.key});
@@ -88,29 +89,63 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Respond to ${request['requester_name']}\'s Request'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Respond to ${request['requester_name']}\'s Request',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Time Off Request Details:',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                style: TextStyle(
                   color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
                 ),
               ),
+              const SizedBox(height: 16),
+              _buildDetailRow(
+                'Type',
+                request['request_type'],
+                Icons.category,
+              ),
               const SizedBox(height: 8),
-              Text('Type: ${request['request_type']}'),
-              Text('Dates: ${_dateFormat.format(DateTime.parse(request['start_date']))} - '
-                   '${_dateFormat.format(DateTime.parse(request['end_date']))}'),
-              Text('Reason: ${request['reason']}'),
+              _buildDetailRow(
+                'Dates',
+                '${_dateFormat.format(DateTime.parse(request['start_date']))} - '
+                '${_dateFormat.format(DateTime.parse(request['end_date']))}',
+                Icons.date_range,
+              ),
+              const SizedBox(height: 8),
+              _buildDetailRow(
+                'Reason',
+                request['reason'],
+                Icons.notes,
+              ),
               const SizedBox(height: 16),
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Response Notes',
+                  labelStyle: TextStyle(color: AppColors.textSecondary),
                   hintText: 'Add any notes about your decision...',
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: AppColors.primary, width: 2),
+                  ),
                 ),
                 maxLines: 3,
               ),
@@ -119,7 +154,10 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -128,6 +166,9 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text('Deny'),
             ),
@@ -138,12 +179,51 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.secondary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text('Approve'),
             ),
           ],
+          actionsPadding: const EdgeInsets.all(16),
         );
       },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: AppColors.primary,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                value,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -158,6 +238,13 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
     
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: AppColors.primaryLight.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -166,31 +253,84 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  request['requester_name'] ?? 'Unknown User',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      child: Text(
+                        request['requester_name']?[0] ?? 'U',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      request['requester_name'] ?? 'Unknown User',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
                 _buildStatusChip(request['status']),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
+            const SizedBox(height: 16),
+            _buildInfoChip(
               '${request['request_type'].toString().toUpperCase()} - $duration ${duration == 1 ? 'day' : 'days'}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+              AppColors.primary,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.date_range,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${_dateFormat.format(startDate)} - ${_dateFormat.format(endDate)}',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.primaryLight.withOpacity(0.2),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${_dateFormat.format(startDate)} - ${_dateFormat.format(endDate)}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Reason: ${request['reason']}',
-              style: Theme.of(context).textTheme.bodyMedium,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.notes,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      request['reason'],
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (request['status'] == 'pending')
               Padding(
@@ -198,8 +338,14 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
+                    ElevatedButton(
                       onPressed: () => _showResponseDialog(request),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                       child: const Text('Respond'),
                     ),
                   ],
@@ -213,7 +359,7 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
 
   Widget _buildStatusChip(String status) {
     Color backgroundColor;
-    Color textColor = AppColors.textLight;
+    Color textColor = AppColors.background;
     
     switch (status.toLowerCase()) {
       case 'approved':
@@ -230,17 +376,39 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         status.toUpperCase(),
         style: TextStyle(
           color: textColor,
           fontSize: 12,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -251,6 +419,7 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Time Off Requests'),
+        elevation: 0,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -258,19 +427,39 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
             Tab(text: 'Approved'),
             Tab(text: 'Denied'),
           ],
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          indicatorColor: AppColors.primary,
+          indicatorWeight: 3,
         ),
       ),
-      drawer: const ManagerDrawer (),
-      body: _isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : TabBarView(
-            controller: _tabController,
-            children: [
-              _buildRequestList('pending'),
-              _buildRequestList('approved'),
-              _buildRequestList('denied'),
+      drawer: const ManagerDrawer(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.background,
             ],
           ),
+        ),
+        child: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            )
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildRequestList('pending'),
+                _buildRequestList('approved'),
+                _buildRequestList('denied'),
+              ],
+            ),
+      ),
     );
   }
 
@@ -279,25 +468,34 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
     
     return filteredRequests.isEmpty
       ? Center(
-          child: Text(
-            'No ${status.toLowerCase()} requests',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.textSecondary,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.event_busy,
+                size: 48,
+                color: AppColors.textSecondary.withOpacity(0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No ${status.toLowerCase()} requests',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         )
       : RefreshIndicator(
           onRefresh: _loadRequests,
+          color: AppColors.primary,
           child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: filteredRequests.length,
             itemBuilder: (context, index) => _buildRequestCard(filteredRequests[index]),
           ),
         );
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 }
