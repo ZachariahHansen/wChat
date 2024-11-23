@@ -4,6 +4,7 @@ import 'package:wchat/data/models/department.dart';
 import 'package:wchat/services/api/department_api.dart';
 import 'package:wchat/services/api/openai_api.dart';
 import 'package:wchat/ui/Home/manager_app_drawer.dart';
+import 'package:wchat/data/app_theme.dart';
 import 'package:intl/intl.dart';
 
 class BusyTimeSlot {
@@ -54,10 +55,8 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
   String _formatRequirements() {
     final StringBuffer requirements = StringBuffer();
     
-    // Basic shift information
     requirements.writeln('Regular shift hours: ${_startTime.format(context)} to ${_endTime.format(context)}');
     
-    // Busy time slots
     if (_busyTimeSlots.isNotEmpty) {
       requirements.writeln('\nBusy time slots requiring additional staff:');
       for (var slot in _busyTimeSlots) {
@@ -65,7 +64,6 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
       }
     }
     
-    // Additional requirements
     requirements.writeln('\nAdditional requirements:');
     requirements.writeln('- Maximum hours per shift: ${_maxHours.toStringAsFixed(1)} hours');
     if (_allowOvertime) {
@@ -122,7 +120,16 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Generated Schedule'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Generated Schedule',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -130,10 +137,33 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
               children: [
                 for (var shift in schedule['shifts']) ...[
                   Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: AppColors.primaryLight.withOpacity(0.2),
+                      ),
+                    ),
                     child: ListTile(
-                      title: Text('${shift['start_time']} - ${shift['end_time']}'),
-                      subtitle: Text('Role: ${shift['role']}'),
-                      trailing: Text('Staff ID: ${shift['assigned_staff'].join(', ')}'),
+                      title: Text(
+                        '${shift['start_time']} - ${shift['end_time']}',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Role: ${shift['role']}',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      trailing: Text(
+                        'Staff ID: ${shift['assigned_staff'].join(', ')}',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -144,19 +174,32 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text(
+                'Close',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
                 // TODO: Implement save functionality
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Shifts saved successfully')),
+                  SnackBar(
+                    content: const Text('Shifts saved successfully'),
+                    backgroundColor: AppColors.secondary,
+                  ),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text('Save Shifts'),
             ),
           ],
+          actionsPadding: const EdgeInsets.all(16),
         );
       },
     );
@@ -179,7 +222,7 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.error,
       ),
     );
   }
@@ -195,13 +238,28 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add Busy Time Slot'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Text(
+                'Add Busy Time Slot',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
-                    title: const Text('Start Time'),
-                    trailing: Text(slotStartTime?.format(context) ?? 'Select Time'),
+                    title: Text(
+                      'Start Time',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
+                    trailing: Text(
+                      slotStartTime?.format(context) ?? 'Select Time',
+                      style: TextStyle(color: AppColors.primary),
+                    ),
                     onTap: () async {
                       final time = await showTimePicker(
                         context: context,
@@ -213,8 +271,14 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                     },
                   ),
                   ListTile(
-                    title: const Text('End Time'),
-                    trailing: Text(slotEndTime?.format(context) ?? 'Select Time'),
+                    title: Text(
+                      'End Time',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
+                    trailing: Text(
+                      slotEndTime?.format(context) ?? 'Select Time',
+                      style: TextStyle(color: AppColors.primary),
+                    ),
                     onTap: () async {
                       final time = await showTimePicker(
                         context: context,
@@ -228,20 +292,35 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Required Employees:'),
+                      Text(
+                        'Required Employees:',
+                        style: TextStyle(color: AppColors.textPrimary),
+                      ),
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.remove),
+                            icon: Icon(
+                              Icons.remove,
+                              color: AppColors.primary,
+                            ),
                             onPressed: () {
                               if (employees > 1) {
                                 setState(() => employees--);
                               }
                             },
                           ),
-                          Text('$employees'),
+                          Text(
+                            '$employees',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           IconButton(
-                            icon: const Icon(Icons.add),
+                            icon: Icon(
+                              Icons.add,
+                              color: AppColors.primary,
+                            ),
                             onPressed: () {
                               setState(() => employees++);
                             },
@@ -255,7 +334,10 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -272,9 +354,16 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                       _showErrorSnackBar('Please select both start and end times');
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   child: const Text('Add'),
                 ),
               ],
+              actionsPadding: const EdgeInsets.all(16),
             );
           },
         );
@@ -287,6 +376,7 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Generate Shifts'),
+        elevation: 0,
         actions: [
           Tooltip(
             message: 'This information will be processed by OpenAI to generate optimal shifts. No sensitive employee information will be shared.',
@@ -298,14 +388,35 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
         ],
       ),
       drawer: const ManagerDrawer(),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.secondary.withOpacity(0.1),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: AppColors.primaryLight.withOpacity(0.2),
+                      ),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TableCalendar(
@@ -340,16 +451,23 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: AppColors.primaryLight.withOpacity(0.2),
+                      ),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Shift Hours',
                             style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -357,8 +475,14 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                             children: [
                               Expanded(
                                 child: ListTile(
-                                  title: const Text('Start Time'),
-                                  trailing: Text(_startTime.format(context)),
+                                  title: Text(
+                                    'Start Time',
+                                    style: TextStyle(color: AppColors.textPrimary),
+                                  ),
+                                  trailing: Text(
+                                    _startTime.format(context),
+                                    style: TextStyle(color: AppColors.primary),
+                                  ),
                                   onTap: () async {
                                     final time = await showTimePicker(
                                       context: context,
@@ -372,8 +496,14 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                               ),
                               Expanded(
                                 child: ListTile(
-                                  title: const Text('End Time'),
-                                  trailing: Text(_endTime.format(context)),
+                                  title: Text(
+                                    'End Time',
+                                    style: TextStyle(color: AppColors.textPrimary),
+                                  ),
+                                  trailing: Text(
+                                    _endTime.format(context),
+                                    style: TextStyle(color: AppColors.primary),
+                                  ),
                                   onTap: () async {
                                     final time = await showTimePicker(
                                       context: context,
@@ -393,6 +523,12 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: AppColors.primaryLight.withOpacity(0.2),
+                      ),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -401,15 +537,19 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'Busy Time Slots',
                                 style: TextStyle(
                                   fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.add),
+                                icon: Icon(
+                                  Icons.add,
+                                  color: AppColors.primary,
+                                ),
                                 onPressed: _addBusyTimeSlot,
                               ),
                             ],
@@ -421,18 +561,40 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                             itemCount: _busyTimeSlots.length,
                             itemBuilder: (context, index) {
                               final slot = _busyTimeSlots[index];
-                              return ListTile(
-                                title: Text(
-                                  '${slot.startTime.format(context)} - ${slot.endTime.format(context)}',
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.primaryLight.withOpacity(0.2),
+                                  ),
                                 ),
-                                subtitle: Text('${slot.requiredEmployees} employees needed'),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () {
-                                    setState(() {
-                                      _busyTimeSlots.removeAt(index);
-                                    });
-                                  },
+                                child: ListTile(
+                                  title: Text(
+                                    '${slot.startTime.format(context)} - ${slot.endTime.format(context)}',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    '${slot.requiredEmployees} employees needed',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  trailing: IconButton(
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: AppColors.error,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _busyTimeSlots.removeAt(index);
+                                      });
+                                    },
+                                  ),
                                 ),
                               );
                             },
@@ -443,93 +605,173 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: AppColors.primaryLight.withOpacity(0.2),
+                      ),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Settings',
                             style: TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<Department>(
-                            decoration: const InputDecoration(
-                              labelText: 'Department',
-                              prefixIcon: Icon(Icons.business),
-                            ),
-                            value: _selectedDepartment,
-                            items: _departments.map((Department department) {
-                              return DropdownMenuItem<Department>(
-                                value: department,
-                                child: Text(department.name),
-                              );
-                            }).toList(),
-                            onChanged: (Department? newValue) {
-                              setState(() {
-                                _selectedDepartment = newValue;
-                              });
-                            },
                           ),
                           const SizedBox(height: 16),
-                          SwitchListTile(
-                            title: const Text('Auto-assign Shifts'),
-                            value: _autoAssign,
-                            onChanged: (bool value) {
-                              setState(() {
-                                _autoAssign = value;
-                              });
-                            },
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.primaryLight.withOpacity(0.2),
+                              ),
+                            ),
+                            child: DropdownButtonFormField<Department>(
+                              decoration: InputDecoration(
+                                labelText: 'Department',
+                                labelStyle: TextStyle(color: AppColors.textSecondary),
+                                prefixIcon: Icon(
+                                  Icons.business,
+                                  color: AppColors.primary,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                              value: _selectedDepartment,
+                              items: _departments.map((Department department) {
+                                return DropdownMenuItem<Department>(
+                                  value: department,
+                                  child: Text(
+                                    department.name,
+                                    style: TextStyle(color: AppColors.textPrimary),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (Department? newValue) {
+                                setState(() {
+                                  _selectedDepartment = newValue;
+                                });
+                              },
+                            ),
                           ),
-                          SwitchListTile(
-                            title: const Text('Allow Overtime'),
-                            value: _allowOvertime,
-                            onChanged: (bool value) {
-                              setState(() {
-                                _allowOvertime = value;
-                              });
-                            },
+                          const SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.primaryLight.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                SwitchListTile(
+                                  title: Text(
+                                    'Auto-assign Shifts',
+                                    style: TextStyle(color: AppColors.textPrimary),
+                                  ),
+                                  value: _autoAssign,
+                                  activeColor: AppColors.primary,
+                                  onChanged: (bool value) {
+                                    setState(() {
+                                      _autoAssign = value;
+                                    });
+                                  },
+                                ),
+                                const Divider(height: 1),
+                                SwitchListTile(
+                                  title: Text(
+                                    'Allow Overtime',
+                                    style: TextStyle(color: AppColors.textPrimary),
+                                  ),
+                                  value: _allowOvertime,
+                                  activeColor: AppColors.primary,
+                                  onChanged: (bool value) {
+                                    setState(() {
+                                      _allowOvertime = value;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                           if (_allowOvertime) ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Text('Maximum Hours: '),
-                                Expanded(
-                                  child: Slider(
-                                    value: _maxHours,
-                                    min: 8,
-                                    max: 12,
-                                    divisions: 8,
-                                    label: _maxHours.toString(),
-                                    onChanged: (double value) {
-                                      setState(() {
-                                        _maxHours = value;
-                                      });
-                                    },
-                                  ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.primaryLight.withOpacity(0.2),
                                 ),
-                                Text('${_maxHours.toStringAsFixed(1)} hours'),
-                              ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Maximum Hours',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Slider(
+                                          value: _maxHours,
+                                          min: 8,
+                                          max: 12,
+                                          divisions: 8,
+                                          activeColor: AppColors.primary,
+                                          inactiveColor: AppColors.primaryLight.withOpacity(0.3),
+                                          label: _maxHours.toString(),
+                                          onChanged: (double value) {
+                                            setState(() {
+                                              _maxHours = value;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      Text(
+                                        '${_maxHours.toStringAsFixed(1)} hours',
+                                        style: TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _isGenerating ? null : _generateShifts,
                       style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.all(16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       child: _isGenerating
-                          ? const Row(
+                          ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 SizedBox(
@@ -537,18 +779,32 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.textLight),
                                   ),
                                 ),
-                                SizedBox(width: 8),
-                                Text('Generating...'),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Generating...',
+                                  style: TextStyle(
+                                    color: AppColors.textLight,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             )
-                          : const Text('Generate Shifts'),
+                          : Text(
+                              'Generate Shifts',
+                              style: TextStyle(
+                                color: AppColors.textLight,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ),
                 ],
               ),
             ),
+      ),
     );
   }
 }
