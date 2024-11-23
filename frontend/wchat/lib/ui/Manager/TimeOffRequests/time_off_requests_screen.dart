@@ -440,7 +440,7 @@ class _TimeOffRequestsScreenState extends State<TimeOffRequestsScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withOpacity(0.1),
+              AppColors.secondary.withOpacity(0.1),
               AppColors.background,
             ],
           ),
