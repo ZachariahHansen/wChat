@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-// lib/data/models/shift.dart
 class Shift {
   final int id;
   final DateTime startTime;
   final DateTime endTime;
-  final int scheduledById;
-  final int departmentId;
+  final int? scheduledById;  // Made optional
+  final int? departmentId;   // Made optional
   final int? userId;
   final String status;
   final String departmentName;
@@ -15,28 +14,27 @@ class Shift {
     required this.id,
     required this.startTime,
     required this.endTime,
-    required this.scheduledById,
-    required this.departmentId,
+    this.scheduledById,    // Made optional
+    this.departmentId,     // Made optional
     this.userId,
     required this.status,
-    this.departmentName = '',
+    required this.departmentName,
   });
 
-  // Factory constructor to create a Shift from JSON
   factory Shift.fromJson(Map<String, dynamic> json) {
+    // Handle both response formats
     return Shift(
       id: json['id'] as int,
       startTime: DateTime.parse(json['start_time'] as String),
       endTime: DateTime.parse(json['end_time'] as String),
-      scheduledById: json['scheduled_by_id'] as int,
-      departmentId: json['department_id'] as int,
+      scheduledById: json['scheduled_by_id'] as int?,  // Made nullable
+      departmentId: json['department_id'] as int?,     // Made nullable
       userId: json['user_id'] as int?,
       status: json['status'] as String,
-      departmentName: json['department_name'] as String,
+      departmentName: json['department_name'] as String? ?? '',  // Provide default value
     );
   }
 
-  // Convert Shift to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -50,7 +48,6 @@ class Shift {
     };
   }
 
-  // Create a copy of Shift with optional parameter updates
   Shift copyWith({
     int? id,
     DateTime? startTime,
@@ -73,30 +70,21 @@ class Shift {
     );
   }
 
-  // Helper method to check if shift is available for exchange
+  // Keep all your existing helper methods
   bool get isAvailableForExchange => status == 'available_for_exchange';
-
-  // Helper method to check if shift is active/scheduled
   bool get isScheduled => status == 'scheduled';
-
-  // Helper method to check if shift is completed
   bool get isCompleted => status == 'completed';
-
-  // Helper method to check if shift is cancelled
   bool get isCancelled => status == 'cancelled';
 
-  // Helper method to get shift duration in hours
   double get durationInHours {
     return endTime.difference(startTime).inMinutes / 60.0;
   }
 
-  // Helper method to check if shift is currently ongoing
   bool get isOngoing {
     final now = DateTime.now();
     return now.isAfter(startTime) && now.isBefore(endTime);
   }
 
-  // Static getter for valid status values
   static List<String> get validStatuses => [
     'scheduled',
     'completed',
@@ -104,15 +92,15 @@ class Shift {
     'available_for_exchange'
   ];
 
-  @override
-  String toString() {
-    return 'Shift{id: $id, startTime: $startTime, endTime: $endTime, '
-           'scheduledById: $scheduledById, departmentId: $departmentId, '
-           'userId: $userId, status: $status}';
-  }
-
   DateTime get date => DateTime(startTime.year, startTime.month, startTime.day);
 
   TimeOfDay get startTimeOfDay => TimeOfDay.fromDateTime(startTime);
   TimeOfDay get endTimeOfDay => TimeOfDay.fromDateTime(endTime);
+
+  @override
+  String toString() {
+    return 'Shift{id: $id, startTime: $startTime, endTime: $endTime, '
+           'scheduledById: $scheduledById, departmentId: $departmentId, '
+           'userId: $userId, status: $status, departmentName: $departmentName}';
+  }
 }
