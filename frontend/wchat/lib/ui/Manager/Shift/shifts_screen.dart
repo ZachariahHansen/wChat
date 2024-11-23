@@ -16,14 +16,18 @@ class ShiftsScreen extends StatefulWidget {
   State<ShiftsScreen> createState() => _ShiftsScreenState();
 }
 
-class _ShiftsScreenState extends State<ShiftsScreen> {
+class _ShiftsScreenState extends State<ShiftsScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final ShiftApi _shiftApi = ShiftApi();
   final UserApi _userApi = UserApi();
   final DepartmentApi _departmentApi = DepartmentApi();
+  late TabController _tabController;
 
   List<Shift> _shifts = [];
-  List<Shift> _filteredShifts = [];
+  List<Shift> _upcomingShifts = [];
+  List<Shift> _previousShifts = [];
+  List<Shift> _filteredUpcomingShifts = [];
+  List<Shift> _filteredPreviousShifts = [];
   List<User> _users = [];
   List<Department> _departments = [];
   bool _isLoading = true;
@@ -38,6 +42,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _searchController.addListener(_filterShifts);
     _loadInitialData();
   }
@@ -66,13 +71,23 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   void _filterShifts() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredShifts = _shifts.where((shift) {
+      _filteredUpcomingShifts = _upcomingShifts.where((shift) {
+        final departmentName = shift.departmentName.toLowerCase();
+        final status = shift.status.toLowerCase();
+        final date = DateFormat('yyyy-MM-dd').format(shift.startTime);
+        return departmentName.contains(query) ||
+            status.contains(query) ||
+            date.contains(query);
+      }).toList();
+
+      _filteredPreviousShifts = _previousShifts.where((shift) {
         final departmentName = shift.departmentName.toLowerCase();
         final status = shift.status.toLowerCase();
         final date = DateFormat('yyyy-MM-dd').format(shift.startTime);
@@ -86,9 +101,13 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
   Future<void> _fetchShifts() async {
     try {
       final response = await _shiftApi.getAllShifts();
+      final now = DateTime.now();
       setState(() {
         _shifts = response.shifts;
-        _filteredShifts = response.shifts;
+        _upcomingShifts = response.shifts.where((shift) => shift.startTime.isAfter(now)).toList();
+        _previousShifts = response.shifts.where((shift) => shift.startTime.isBefore(now)).toList();
+        _filteredUpcomingShifts = _upcomingShifts;
+        _filteredPreviousShifts = _previousShifts;
       });
     } catch (e) {
       _showErrorSnackBar('Failed to load shifts: $e');
@@ -148,8 +167,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                           context: context,
                           initialDate: DateTime.now(),
                           firstDate: DateTime.now(),
-                          lastDate:
-                              DateTime.now().add(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
                         );
                         if (date != null) {
                           setState(() {
@@ -231,8 +249,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                       items: _statusOptions.map((String status) {
                         return DropdownMenuItem<String>(
                           value: status,
-                          child:
-                              Text(status.replaceAll('_', ' ').toTitleCase()),
+                          child: Text(status.replaceAll('_', ' ').toTitleCase()),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -297,7 +314,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
     );
   }
 
-    void _showAssignShiftDialog(Shift shift) {
+  void _showAssignShiftDialog(Shift shift) {
     // Get the day of week (0 = Sunday, 6 = Saturday)
     final dayOfWeek = shift.startTime.weekday % 7;
     
@@ -480,11 +497,121 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
     }
   }
 
+  Widget _buildShiftList(List<Shift> shifts) {
+    return ListView.builder(
+      itemCount: shifts.length,
+      itemBuilder: (context, index) {
+        final shift = shifts[index];
+        final assignedUser = _users.firstWhere(
+          (user) => user.id == shift.userId,
+          orElse: () => User(
+            id: -1,
+            firstName: 'Unassigned',
+            lastName: '',
+            email: '',
+            phoneNumber: '',
+            hourlyRate: 0,
+            role: '',
+            isManager: false,
+            departments: [],
+            fullTime: true,
+            availability: [],
+          ),
+        );
+
+        return Card(
+          child: ListTile(
+            title: Text(
+              '${DateFormat('MMM dd, yyyy').format(shift.startTime)} - ${shift.departmentName}',
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${DateFormat('HH:mm').format(shift.startTime)} - ${DateFormat('HH:mm').format(shift.endTime)}',
+                ),
+                Row(
+                  children: [
+                    const Text('Status: '),
+                    DropdownButton<String>(
+                      value: shift.status,
+                      underline: Container(),
+                      items: _statusOptions.map((String status) {
+                        return DropdownMenuItem<String>(
+                          value: status,
+                          child: Text(
+                            status.replaceAll('_', ' ').toTitleCase(),
+                            style: TextStyle(
+                              color: _getStatusColor(status),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          _updateShiftStatus(shift, newValue);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Assigned to: ${assignedUser.firstName} ${assignedUser.lastName}',
+                      ),
+                    ),
+                    if (assignedUser.id != -1)
+                      TextButton.icon(
+                        onPressed: () async {
+                          try {
+                            await _shiftApi.unassignShift(shift.id);
+                            await _fetchShifts();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Successfully unassigned shift'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } catch (e) {
+                            _showErrorSnackBar('Failed to unassign shift: $e');
+                          }
+                        },
+                        icon: const Icon(Icons.person_remove, size: 18),
+                        label: const Text('Unassign'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _showAssignShiftDialog(shift),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shift Management'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Upcoming Shifts'),
+            Tab(text: 'Previous Shifts'),
+          ],
+        ),
       ),
       drawer: const ManagerDrawer(),
       floatingActionButton: FloatingActionButton(
@@ -514,114 +641,12 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: _filteredShifts.length,
-                      itemBuilder: (context, index) {
-                        final shift = _filteredShifts[index];
-                        final assignedUser = _users.firstWhere(
-                          (user) => user.id == shift.userId,
-                          orElse: () => User(
-                            id: -1,
-                            firstName: 'Unassigned',
-                            lastName: '',
-                            email: '',
-                            phoneNumber: '',
-                            hourlyRate: 0,
-                            role: '',
-                            isManager: false,
-                            departments: [],
-                            fullTime: true, // Default value for unassigned user
-                            availability: [],
-                          ),
-                        );
-
-                        return Card(
-                          child: ListTile(
-                            title: Text(
-                              '${DateFormat('MMM dd, yyyy').format(shift.startTime)} - ${shift.departmentName}',
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${DateFormat('HH:mm').format(shift.startTime)} - ${DateFormat('HH:mm').format(shift.endTime)}',
-                                ),
-                                Row(
-                                  children: [
-                                    const Text('Status: '),
-                                    DropdownButton<String>(
-                                      value: shift.status,
-                                      underline: Container(),
-                                      items:
-                                          _statusOptions.map((String status) {
-                                        return DropdownMenuItem<String>(
-                                          value: status,
-                                          child: Text(
-                                            status
-                                                .replaceAll('_', ' ')
-                                                .toTitleCase(),
-                                            style: TextStyle(
-                                              color: _getStatusColor(status),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (String? newValue) {
-                                        if (newValue != null) {
-                                          _updateShiftStatus(shift, newValue);
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Assigned to: ${assignedUser.firstName} ${assignedUser.lastName}',
-                                      ),
-                                    ),
-                                    if (assignedUser.id != -1)
-                                      TextButton.icon(
-                                        onPressed: () async {
-                                          try {
-                                            await _shiftApi
-                                                .unassignShift(shift.id);
-                                            await _fetchShifts();
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                    'Successfully unassigned shift'),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
-                                          } catch (e) {
-                                            _showErrorSnackBar(
-                                                'Failed to unassign shift: $e');
-                                          }
-                                        },
-                                        icon: const Icon(Icons.person_remove,
-                                            size: 18),
-                                        label: const Text('Unassign'),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8),
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _showAssignShiftDialog(shift),
-                            ),
-                          ),
-                        );
-                      },
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildShiftList(_filteredUpcomingShifts),
+                        _buildShiftList(_filteredPreviousShifts),
+                      ],
                     ),
                   ),
                 ],
