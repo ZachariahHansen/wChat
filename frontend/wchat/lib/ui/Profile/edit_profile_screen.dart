@@ -262,9 +262,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildProfilePictureSection() {
-    return Column(
-      children: [
-        Stack(
+  return Column(
+    children: [
+      SizedBox(
+        width: 140, // Increased to accommodate the camera button
+        height: 140, // Increased to accommodate the camera button
+        child: Stack(
+          clipBehavior: Clip.none, // Allow children to overflow
           alignment: Alignment.center,
           children: [
             Container(
@@ -297,8 +301,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             Positioned(
-              right: -10,
-              bottom: -10,
+              right: 0,
+              bottom: 0,
               child: Material(
                 color: AppColors.secondary,
                 shape: const CircleBorder(),
@@ -307,11 +311,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onTap: _updateProfilePicture,
                   customBorder: const CircleBorder(),
                   child: const Padding(
-                    padding: EdgeInsets.all(8.0),
+                    padding: EdgeInsets.all(10.0), // Increased padding
                     child: Icon(
                       Icons.camera_alt,
                       color: AppColors.textLight,
-                      size: 20,
+                      size: 24, // Slightly larger icon
                     ),
                   ),
                 ),
@@ -319,17 +323,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Tap the camera icon to change your profile picture',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-          ),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        'Tap the camera icon to change your profile picture',
+        style: TextStyle(
+          color: AppColors.textSecondary,
+          fontSize: 12,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   Widget _buildDisplayNameSection() {
     return Card(

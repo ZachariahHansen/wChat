@@ -44,10 +44,9 @@ class MyApp extends StatelessWidget {
       ),
       home: LoginScreen(),
       onGenerateRoute: (settings) {
-        // First, check if it's a special route that needs query parameter handling
         final uri = Uri.parse(settings.name ?? '');
         
-        // Handle reset password route with token
+        
         if (uri.path == '/reset-password') {
           final token = uri.queryParameters['token'];
           if (token == null) {
@@ -61,8 +60,7 @@ class MyApp extends StatelessWidget {
             builder: (_) => ResetPasswordScreen(token: token),
           );
         }
-
-        // Handle profile routes with arguments
+        
         if (settings.name == '/profile') {
           final userId = settings.arguments as int;
           return MaterialPageRoute(
@@ -76,7 +74,7 @@ class MyApp extends StatelessWidget {
           );
         }
 
-        // Handle regular routes
+        
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(builder: (_) => HomeScreen());
