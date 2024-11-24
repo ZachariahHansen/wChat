@@ -17,11 +17,13 @@ class _TimeOffRequestDialogState extends State<TimeOffRequestDialog> {
   final _reasonController = TextEditingController();
   final _notesController = TextEditingController();
 
+  DateTime? _selectedDay;
   DateTime? _startDate;
   DateTime? _endDate;
   String _requestType = 'vacation';
   bool _isLoading = false;
   int? _userId;
+  bool _isRangeMode = false;
 
   final List<DropdownMenuItem<String>> _requestTypes = [
     const DropdownMenuItem(value: 'vacation', child: Text('Vacation')),
@@ -45,13 +47,17 @@ class _TimeOffRequestDialogState extends State<TimeOffRequestDialog> {
 
   Future<void> _submitRequest() async {
     if (_formKey.currentState!.validate() && _userId != null) {
+      // For single day selection, use _selectedDay for both start and end
+      final effectiveStartDate = _isRangeMode ? _startDate! : _selectedDay!;
+      final effectiveEndDate = _isRangeMode ? _endDate! : _selectedDay!;
+
       setState(() => _isLoading = true);
 
       try {
         final requestData = TimeOffRequestApi.createTimeOffRequestData(
           userId: _userId!,
-          startDate: _startDate!,
-          endDate: _endDate!,
+          startDate: effectiveStartDate,
+          endDate: effectiveEndDate,
           requestType: _requestType,
           reason: _reasonController.text,
           notes: _notesController.text.isNotEmpty ? _notesController.text : null,
@@ -115,27 +121,60 @@ class _TimeOffRequestDialogState extends State<TimeOffRequestDialog> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                // Toggle switch between single day and range selection
+                Row(
+                  children: [
+                    const Text('Multiple Days'),
+                    Switch(
+                      value: _isRangeMode,
+                      onChanged: (value) {
+                        setState(() {
+                          _isRangeMode = value;
+                          // Reset selections when switching modes
+                          _selectedDay = null;
+                          _startDate = null;
+                          _endDate = null;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 TableCalendar(
                   firstDay: DateTime.now(),
                   lastDay: DateTime.now().add(const Duration(days: 365)),
-                  focusedDay: _startDate ?? DateTime.now(),
+                  focusedDay: _selectedDay ?? DateTime.now(),
                   selectedDayPredicate: (day) {
+                    if (!_isRangeMode) {
+                      return _selectedDay != null && isSameDay(day, _selectedDay!);
+                    }
                     return _startDate != null && _endDate != null
                         ? (day.isAtSameMomentAs(_startDate!) ||
                             day.isAtSameMomentAs(_endDate!) ||
                             (day.isAfter(_startDate!) && day.isBefore(_endDate!)))
-                        : day.isAtSameMomentAs(_startDate ?? DateTime.now());
+                        : false;
                   },
-                  rangeStartDay: _startDate,
-                  rangeEndDay: _endDate,
+                  rangeStartDay: _isRangeMode ? _startDate : null,
+                  rangeEndDay: _isRangeMode ? _endDate : null,
                   calendarFormat: CalendarFormat.month,
-                  rangeSelectionMode: RangeSelectionMode.enforced,
-                  onRangeSelected: (start, end, focusedDay) {
-                    setState(() {
-                      _startDate = start;
-                      _endDate = end;
-                    });
-                  },
+                  rangeSelectionMode: _isRangeMode 
+                      ? RangeSelectionMode.enforced 
+                      : RangeSelectionMode.disabled,
+                  onDaySelected: !_isRangeMode 
+                      ? (selectedDay, focusedDay) {
+                          setState(() {
+                            _selectedDay = selectedDay;
+                          });
+                        }
+                      : null,
+                  onRangeSelected: _isRangeMode
+                      ? (start, end, focusedDay) {
+                          setState(() {
+                            _startDate = start;
+                            _endDate = end;
+                          });
+                        }
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
@@ -185,7 +224,8 @@ class _TimeOffRequestDialogState extends State<TimeOffRequestDialog> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isLoading || _startDate == null || _endDate == null
+                    onPressed: _isLoading || 
+                        (_isRangeMode ? (_startDate == null || _endDate == null) : _selectedDay == null)
                         ? null
                         : _submitRequest,
                     child: _isLoading
