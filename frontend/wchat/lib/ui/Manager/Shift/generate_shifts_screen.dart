@@ -32,6 +32,7 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
   final AISchedulingService _aiService = AISchedulingService();
   
   DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
   DateTime? _selectedStartDate;
   DateTime? _selectedEndDate;
   TimeOfDay _startTime = const TimeOfDay(hour: 7, minute: 0);
@@ -45,6 +46,7 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
   bool _isLoading = true;
   bool _isGenerating = false;
   Map<String, dynamic>? _generatedSchedule;
+  bool _isRangeMode = false;
 
   @override
   void initState() {
@@ -79,8 +81,12 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
   }
 
   Future<void> _generateShifts() async {
-    if (_selectedStartDate == null || _selectedEndDate == null) {
+    if (_isRangeMode && (_selectedStartDate == null || _selectedEndDate == null)) {
       _showErrorSnackBar('Please select date range');
+      return;
+    }
+    if (!_isRangeMode && _selectedDay == null) {
+      _showErrorSnackBar('Please select a date');
       return;
     }
     if (_selectedDepartment == null) {
@@ -95,7 +101,7 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
 
     try {
       final requirements = _formatRequirements();
-      final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedStartDate!);
+      final formattedDate = DateFormat('yyyy-MM-dd').format(_isRangeMode ? _selectedStartDate! : _selectedDay!);
       
       final schedule = await _aiService.generateSchedule(
         requirements: requirements,
@@ -418,34 +424,64 @@ class _GenerateShiftsScreenState extends State<GenerateShiftsScreen> {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TableCalendar(
-                        firstDay: DateTime.now(),
-                        lastDay: DateTime.now().add(const Duration(days: 365)),
-                        focusedDay: _focusedDay,
-                        calendarFormat: _calendarFormat,
-                        selectedDayPredicate: (day) {
-                          return _selectedStartDate != null && 
-                                 _selectedEndDate != null &&
-                                 day.isAfter(_selectedStartDate!.subtract(const Duration(days: 1))) && 
-                                 day.isBefore(_selectedEndDate!.add(const Duration(days: 1)));
-                        },
-                        onDaySelected: (selectedDay, focusedDay) {
-                          setState(() {
-                            if (_selectedStartDate == null || _selectedEndDate != null) {
-                              _selectedStartDate = selectedDay;
-                              _selectedEndDate = null;
-                            } else {
-                              if (selectedDay.isBefore(_selectedStartDate!)) {
-                                _selectedEndDate = _selectedStartDate;
-                                _selectedStartDate = selectedDay;
-                              } else {
-                                _selectedEndDate = selectedDay;
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Text('Multiple Days'),
+                              Switch(
+                                value: _isRangeMode,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isRangeMode = value;
+                                    // Reset selections when switching modes
+                                    _selectedDay = null;
+                                    _selectedStartDate = null;
+                                    _selectedEndDate = null;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          TableCalendar(
+                            firstDay: DateTime.now(),
+                            lastDay: DateTime.now().add(const Duration(days: 365)),
+                            focusedDay: _focusedDay,
+                            calendarFormat: _calendarFormat,
+                            selectedDayPredicate: (day) {
+                              if (!_isRangeMode) {
+                                return _selectedDay != null && isSameDay(day, _selectedDay!);
                               }
-                            }
-                            _focusedDay = focusedDay;
-                          });
-                        },
+                              return _selectedStartDate != null && 
+                                     _selectedEndDate != null &&
+                                     day.isAfter(_selectedStartDate!.subtract(const Duration(days: 1))) && 
+                                     day.isBefore(_selectedEndDate!.add(const Duration(days: 1)));
+                            },
+                            rangeStartDay: _isRangeMode ? _selectedStartDate : null,
+                            rangeEndDay: _isRangeMode ? _selectedEndDate : null,
+                            rangeSelectionMode: _isRangeMode 
+                                ? RangeSelectionMode.enforced 
+                                : RangeSelectionMode.disabled,
+                            onDaySelected: !_isRangeMode
+                                ? (selectedDay, focusedDay) {
+                                    setState(() {
+                                      _selectedDay = selectedDay;
+                                      _focusedDay = focusedDay;
+                                    });
+                                  }
+                                : null,
+                            onRangeSelected: _isRangeMode
+                                ? (start, end, focusedDay) {
+                                    setState(() {
+                                      _selectedStartDate = start;
+                                      _selectedEndDate = end;
+                                      _focusedDay = focusedDay;
+                                    });
+                                  }
+                                : null,
+                          ),
+                        ],
                       ),
                     ),
                   ),
