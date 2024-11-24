@@ -26,10 +26,18 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    // Parse departments string into List<String>
-    List<String> parseDepartments(String? depts) {
-      if (depts == null || depts.isEmpty) return [];
-      return depts.split(',').map((d) => d.trim()).where((d) => d.isNotEmpty).toList();
+    // Parse departments
+    List<String> parseDepartments(dynamic depts) {
+      if (depts == null) return [];
+      // If it's already a string, split it
+      if (depts is String) {
+        return depts.split(',').map((d) => d.trim()).where((d) => d.isNotEmpty).toList();
+      }
+      // If it's a single department as a string
+      if (depts is String) {
+        return [depts];
+      }
+      return [];
     }
 
     // Parse availability array into List<Availability>
@@ -44,11 +52,13 @@ class User {
       lastName: json['last_name'],
       email: json['email'],
       phoneNumber: json['phone_number'],
-      role: json['role_name'] ?? '',
-      departments: parseDepartments(json['departments']),
-      hourlyRate: json['hourly_rate'].toDouble(),
+      role: json['role'] ?? json['role_name'] ?? '', // Check both 'role' and 'role_name'
+      departments: parseDepartments(json['department'] ?? json['departments']), // Check both singular and plural
+      hourlyRate: (json['hourly_rate'] is int) 
+          ? json['hourly_rate'].toDouble() 
+          : json['hourly_rate'],
       isManager: json['is_manager'],
-      fullTime: json['full_time'] ?? true, // Default to true if not provided
+      fullTime: json['full_time'] ?? true,
       availability: parseAvailability(json['availability'] as List?),
     );
   }
@@ -69,7 +79,6 @@ class User {
   }
 }
 
-// Availability model to represent daily availability
 class Availability {
   final int day;
   final bool isAvailable;

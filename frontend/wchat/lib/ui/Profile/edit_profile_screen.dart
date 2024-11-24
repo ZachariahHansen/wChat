@@ -56,7 +56,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       setState(() => _isLoading = true);
       final user = await _userApi.getUserProfile(widget.userId);
-      
+
       if (mounted) {
         setState(() {
           _firstNameController.text = user.firstName;
@@ -106,7 +106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         maxHeight: 800,
         imageQuality: 85,
       );
-      
+
       if (image == null) return;
 
       setState(() => _isLoadingImage = true);
@@ -212,155 +212,167 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textLight,
+        elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            )
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.background,
+            ],
+          ),
+        ),
+        child: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                ),
+              )
+            : SingleChildScrollView(
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildProfilePictureSection(),
-                      const SizedBox(height: 24),
                       _buildDisplayNameSection(),
-                      const SizedBox(height: 24),
                       _buildPasswordSection(),
-                      const SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _saveChanges,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.all(16),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: AppColors.textLight,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Save Changes'),
-                      ),
-                      const SizedBox(height: 24),
+                      _buildSaveButton(),
                     ],
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
   Widget _buildProfilePictureSection() {
-  return Column(
-    children: [
-      SizedBox(
-        width: 140, // Increased to accommodate the camera button
-        height: 140, // Increased to accommodate the camera button
-        child: Stack(
-          clipBehavior: Clip.none, // Allow children to overflow
-          alignment: Alignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primary,
-                  width: 3,
-                ),
-              ),
-              child: CircleAvatar(
-                radius: 60,
-                backgroundColor: AppColors.surface,
-                backgroundImage: _profilePicture != null
-                    ? MemoryImage(_profilePicture!)
-                    : null,
-                child: _isLoadingImage
-                    ? const CircularProgressIndicator(
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textSecondary.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Hero(
+            tag: 'profile-${widget.userId}',
+            child: SizedBox(
+              width: 120,
+              height: 120,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
                         color: AppColors.primary,
-                      )
-                    : _profilePicture == null
-                        ? Text(
-                            '${_firstNameController.text.isNotEmpty ? _firstNameController.text[0] : ''}${_lastNameController.text.isNotEmpty ? _lastNameController.text[0] : ''}',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
-              ),
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Material(
-                color: AppColors.secondary,
-                shape: const CircleBorder(),
-                elevation: 4,
-                child: InkWell(
-                  onTap: _updateProfilePicture,
-                  customBorder: const CircleBorder(),
-                  child: const Padding(
-                    padding: EdgeInsets.all(10.0), // Increased padding
-                    child: Icon(
-                      Icons.camera_alt,
-                      color: AppColors.textLight,
-                      size: 24, // Slightly larger icon
+                        width: 3,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 56,
+                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      backgroundImage: _profilePicture != null
+                          ? MemoryImage(_profilePicture!)
+                          : null,
+                      child: _isLoadingImage
+                          ? const CircularProgressIndicator(
+                              color: AppColors.primary,
+                            )
+                          : _profilePicture == null
+                              ? Text(
+                                  '${_firstNameController.text.isNotEmpty ? _firstNameController.text[0] : ''}${_lastNameController.text.isNotEmpty ? _lastNameController.text[0] : ''}',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : null,
                     ),
                   ),
-                ),
+                  Positioned(
+                    right: -4,
+                    bottom: -4,
+                    child: Material(
+                      color: AppColors.secondary,
+                      shape: const CircleBorder(),
+                      elevation: 4,
+                      child: InkWell(
+                        onTap: _updateProfilePicture,
+                        customBorder: const CircleBorder(),
+                        child: const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: AppColors.textLight,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tap the camera icon to change your profile picture',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
-      const SizedBox(height: 12),
-      Text(
-        'Tap the camera icon to change your profile picture',
-        style: TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 12,
-        ),
-      ),
-    ],
-  );
-}
+    );
+  }
 
   Widget _buildDisplayNameSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textSecondary.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Display Name',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            _buildTextField(
               controller: _firstNameController,
-              decoration: const InputDecoration(
-                labelText: 'First Name',
-                prefixIcon: Icon(Icons.person_outline),
-              ),
+              label: 'First Name',
+              icon: Icons.person_outline,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'First name is required';
@@ -369,12 +381,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            _buildTextField(
               controller: _lastNameController,
-              decoration: const InputDecoration(
-                labelText: 'Last Name',
-                prefixIcon: Icon(Icons.person_outline),
-              ),
+              label: 'Last Name',
+              icon: Icons.person_outline,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Last name is required';
@@ -389,41 +399,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildPasswordSection() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textSecondary.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Change Password',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            _buildTextField(
               controller: _currentPasswordController,
-              obscureText: !_showPassword,
-              decoration: InputDecoration(
-                labelText: 'Current Password',
-                prefixIcon: const Icon(Icons.lock_outline),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _showPassword ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _showPassword = !_showPassword;
-                    });
-                  },
-                ),
-              ),
+              label: 'Current Password',
+              icon: Icons.lock_outline,
+              isPassword: true,
               validator: (value) {
                 if (value?.isNotEmpty ?? false) {
                   if (value!.length < 6) {
@@ -434,13 +441,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            _buildTextField(
               controller: _newPasswordController,
-              obscureText: !_showPassword,
-              decoration: const InputDecoration(
-                labelText: 'New Password',
-                prefixIcon: Icon(Icons.lock_outline),
-              ),
+              label: 'New Password',
+              icon: Icons.lock_outline,
+              isPassword: true,
               validator: (value) {
                 if (_currentPasswordController.text.isNotEmpty) {
                   if (value == null || value.isEmpty) {
@@ -454,13 +459,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               },
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            _buildTextField(
               controller: _confirmPasswordController,
-              obscureText: !_showPassword,
-              decoration: const InputDecoration(
-                labelText: 'Confirm New Password',
-                prefixIcon: Icon(Icons.lock_outline),
-              ),
+              label: 'Confirm New Password',
+              icon: Icons.lock_outline,
+              isPassword: true,
               validator: (value) {
                 if (_newPasswordController.text.isNotEmpty) {
                   if (value == null || value.isEmpty) {
@@ -484,6 +487,88 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isPassword = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword && !_showPassword,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: AppColors.textSecondary),
+        prefixIcon: Icon(icon, color: AppColors.primary),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  _showPassword ? Icons.visibility_off : Icons.visibility,
+                  color: AppColors.textSecondary,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showPassword = !_showPassword;
+                  });
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primaryLight),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.primaryLight.withOpacity(0.2),
+          ),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _saveChanges,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textLight,
+          padding: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: AppColors.textLight,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Text(
+                'Save Changes',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }
