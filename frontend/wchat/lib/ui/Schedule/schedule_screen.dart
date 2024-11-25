@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:wchat/ui/Home/app_drawer.dart';
 import 'package:wchat/services/api/shift_api.dart';
+import 'package:wchat/services/api/user_api.dart';
 import 'package:wchat/data/models/shift.dart';
+import 'package:wchat/data/models/user.dart';
 import 'package:intl/intl.dart';
 import 'package:wchat/data/app_theme.dart';
+import 'package:wchat/services/storage/jwt_decoder.dart';
 
 class ScheduleScreen extends StatefulWidget {
   @override
@@ -16,17 +19,42 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   late ShiftApi _shiftApi;
+  late UserApi _userApi;
   Map<DateTime, List<Shift>> _events = {};
   int _availableShiftsCount = 0;
   bool _isLoadingAvailableShifts = true;
+  User? _currentUser;
 
   @override
   void initState() {
     super.initState();
     _shiftApi = ShiftApi();
+    _userApi = UserApi();
     _selectedDay = _focusedDay;
-    _fetchShifts();
-    _fetchAvailableShifts();
+    _loadUserAndShifts();
+  }
+
+  Future<void> _loadUserAndShifts() async {
+    try {
+      final userId = await JwtDecoder.getUserId();
+      if (userId == null) {
+        throw Exception('User ID not found in JWT payload');
+      }
+      final user = await _userApi.getUserProfile(userId);
+      setState(() {
+        _currentUser = user;
+      });
+      await _fetchShifts();
+      await _fetchAvailableShifts();
+    } catch (e) {
+      print('Error loading user and shifts: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load user data: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   Future<void> _fetchAvailableShifts() async {
@@ -64,7 +92,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Map<DateTime, List<Shift>> _groupShiftsByDay(List<Shift> shifts) {
     Map<DateTime, List<Shift>> groupedShifts = {};
     for (var shift in shifts) {
-      final day = DateTime(shift.startTime.year, shift.startTime.month, shift.startTime.day);
+      final day = DateTime(
+          shift.startTime.year, shift.startTime.month, shift.startTime.day);
       if (groupedShifts[day] == null) groupedShifts[day] = [];
       groupedShifts[day]!.add(shift);
     }
@@ -152,7 +181,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               shape: BoxShape.circle,
             ),
             weekendTextStyle: TextStyle(color: AppColors.textSecondary),
-            outsideTextStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
+            outsideTextStyle:
+                TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
           ),
           headerStyle: HeaderStyle(
             titleTextStyle: TextStyle(
@@ -173,7 +203,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _buildShiftsList() {
     final shifts = _getEventsForDay(_selectedDay ?? _focusedDay);
-    
+
     return Expanded(
       child: shifts.isEmpty
           ? _buildEmptyState()
@@ -210,7 +240,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _buildShiftTile(Shift shift) {
     final timeFormatter = DateFormat('HH:mm');
-    
+    final currencyFormatter = NumberFormat.currency(symbol: '\$');
+
+    // Calculate expected earnings
+    double expectedEarnings = 0;
+    if (_currentUser != null) {
+      final hours = shift.endTime.difference(shift.startTime).inMinutes / 60;
+      expectedEarnings = hours * _currentUser!.hourlyRate;
+    }
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
@@ -260,6 +298,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 4),
+            if (_currentUser != null)
+              Row(
+                children: [
+                  Icon(
+                    Icons.attach_money,
+                    size: 16,
+                    color: AppColors.secondary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Expected earnings: ${currencyFormatter.format(expectedEarnings)}',
+                    style: TextStyle(
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
         trailing: Container(
@@ -292,9 +349,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           },
           icon: const Icon(Icons.attach_money),
           label: const Text('Available Shifts'),
-          backgroundColor: _availableShiftsCount > 0 
-            ? AppColors.secondary
-            : AppColors.secondaryLight,
+          backgroundColor: _availableShiftsCount > 0
+              ? AppColors.secondary
+              : AppColors.secondaryLight,
         ),
         if (_availableShiftsCount > 0)
           Positioned(

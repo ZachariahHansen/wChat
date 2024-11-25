@@ -48,16 +48,14 @@ def lambda_handler(event, context):
                 reset_token = secrets.token_urlsafe(32)
                 expires_at = datetime.utcnow() + timedelta(hours=1)
                 
-                # Store reset token in database
+                # reset token in the database
                 cur.execute("""
                     INSERT INTO password_reset_tokens (user_id, token, expires_at)
                     VALUES (%s, %s, %s)
                 """, (user['id'], reset_token, expires_at))
                 
-                # Prepare reset link
                 reset_link = f"{os.environ['APP_URL'].rstrip('/')}/#/reset-password?token={reset_token}"
                 
-                # Send email using AWS SES
                 ses = boto3.client('ses', region_name=os.environ.get('SES_REGION', 'us-east-2'))
                 
                 email_body = f"""
